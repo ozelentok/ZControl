@@ -1,10 +1,11 @@
 #include "AddressInfo.hpp"
+#include "AddressInfoErrorCategory.hpp"
 #include <errno.h>
 
 AddressInfo::AddressInfo(const std::string &host, uint16_t port) {
 	int result = getaddrinfo(host.c_str(), std::to_string(port).c_str(), nullptr, &(this->_info));
 	if (result != 0) {
-		throw std::system_error(result, GAIErrorCategory(errno), "Failed to get address info");
+		throw std::system_error(result, AddressInfoErrorCategory(errno), "Failed to get address info");
 	}
 }
 

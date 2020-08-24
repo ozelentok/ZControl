@@ -1,6 +1,6 @@
-add_library(zcontrol-base STATIC
+add_library(base STATIC
 	AddressInfo.cpp 
-	GAIErrorCategory.cpp 
+	AddressInfoErrorCategory.cpp 
 	TcpSocket.cpp
 )
-target_include_directories(zcontrol-base PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(base PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
