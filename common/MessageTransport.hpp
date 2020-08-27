@@ -28,8 +28,8 @@ struct Message {
 class MessageTransport {
 	private:
 		TcpSocket &_socket;
+		void _read_exactly(uint8_t* buffer, uint32_t count);
 
-	void _read_exactly(uint8_t* buffer, uint32_t count);
 	public:
 		MessageTransport(TcpSocket &socket);
 		MessageTransport(const MessageTransport&) = delete;
