@@ -4,7 +4,6 @@ project(zcontrol)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_subdirectory(base)
+add_subdirectory(common)
 add_subdirectory(worker)
-
-add_executable(zcontrol main.cpp)
-target_link_libraries(zcontrol PRIVATE base)
+add_subdirectory(server)

@@ -45,6 +45,16 @@ void TcpSocket::bind(const std::string &host, uint16_t port) {
 	if (result == -1) {
 		throw std::system_error(errno, std::system_category(), "Failed to bind");
 	}
+
+	int enable = 1;
+	result = setsockopt(_socket, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(enable));
+	if (result == -1) {
+		throw std::system_error(errno, std::system_category(), "Failed to set socket option REUSEADDR");
+	}
+	result = setsockopt(_socket, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(enable));
+	if (result == -1) {
+		throw std::system_error(errno, std::system_category(), "Failed to set socket option REUSEPORT");
+	}
 }
 
 void TcpSocket::listen(int backlog) {
@@ -69,21 +79,21 @@ TcpSocket TcpSocket::accept() {
 	return TcpSocket(socket);
 }
 
+size_t TcpSocket::recv(uint8_t *bytes, size_t size) {
+	ssize_t result = ::recv(_socket, bytes, size, 0);
+	if (result <= -1) {
+		throw std::system_error(errno, std::system_category(), "Failed to recv");
+	}
+	return result;
+}
+
 void TcpSocket::send(const std::vector<uint8_t> bytes) {
 	send(bytes.data(), bytes.size());
 }
 
 void TcpSocket::send(const uint8_t *bytes, size_t size) {
 	ssize_t result = ::send(_socket, bytes, size, 0);
-	if (result == -1) {
+	if (result <= -1) {
 		throw std::system_error(errno, std::system_category(), "Failed to send");
 	}
-}
-
-size_t TcpSocket::recv(uint8_t *bytes, size_t size) {
-	ssize_t result = ::recv(_socket, bytes, size, 0);
-	if (result == -1) {
-		throw std::system_error(errno, std::system_category(), "Failed to recv");
-	}
-	return result;
 }
