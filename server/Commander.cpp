@@ -9,7 +9,6 @@ int Commander::open(const std::string &file_path, int32_t flags) {
 	Message m;
 	m.id = _command_next_id++;
 	m.type = CommanderMessageType::Open;
-	m.
 	m.length = 0;
 }
 

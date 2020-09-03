@@ -1,5 +1,6 @@
 #include "TcpSocket.hpp"
 #include "MessageTransport.hpp"
+#include "BinarySerializer.hpp"
 #include <cstdio>
 #include <unistd.h>
 
@@ -11,19 +12,16 @@ void server() {
 	TcpSocket conn = sock.accept();
 	printf("Connection established\n");
 	MessageTransport transport(conn);
+	BinarySerializer serializer;
 	Message msg = {
 		.id = 1,
 		.type = Open,
-		.length = 5,
 	};
-	msg.data.reserve(5);
-	msg.data[0] = 'h';
-	msg.data[1] = 'e';
-	msg.data[2] = 'l';
-	msg.data[3] = 'l';
-	msg.data[4] = 'o';
-	printf("Sent Message\n");
+	serializer.serialize_str("Hello World\n");
+	msg.data = serializer.data();
+	msg.length = msg.data.size();
 	transport.write(msg);
+	printf("Sent Message\n");
 }
 
 int main(int argc, char const* argv[])

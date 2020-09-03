@@ -1,5 +1,6 @@
 #include "TcpSocket.hpp"
 #include "MessageTransport.hpp"
+#include "BinaryDeserializer.hpp"
 #include <cstdio>
 #include <unistd.h>
 
@@ -13,8 +14,9 @@ void worker() {
 	printf("ID: %d\n", msg.id);
 	printf("Type: %d\n", msg.type);
 	printf("Length: %d\n", msg.length);
-	printf("Data[0]: %c\n", msg.data[0]);
-	printf("Data[4]: %c\n", msg.data[4]);
+	BinaryDeserializer deserializer(msg.data);
+	std::string text = deserializer.deserialize_str();
+	printf("Data: %s\n", text.c_str());
 }
 
 int main(int argc, char const* argv[])
