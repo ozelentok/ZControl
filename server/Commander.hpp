@@ -4,15 +4,16 @@
 
 class Commander {
 	private:
-		TcpSocket _connection;
 		MessageTransport _transport;
 		uint32_t _command_next_id;
+		uint32_t _last_errno;
 
 	public:
-		Commander(const std::string &host, uint16_t port);
+		Commander(TcpSocket &connection);
+		uint32_t last_errno() const;
 		//TODO - use DEFFILEMODE  as 3rd parameter in worker
-		int open(const std::string &file_path, int32_t flags);
-		int close(uint32_t fd);
-		size_t read(uint8_t *bytes, size_t size);
-		void write(uint32_t fd, const uint8_t *bytes, size_t size);
+		int32_t open(const std::string &file_path, int32_t flags);
+		int32_t close(int32_t fd);
+		int32_t read(int32_t fd, uint8_t *bytes, uint32_t size);
+		int32_t write(int32_t fd, const uint8_t *bytes, uint32_t size);
 };

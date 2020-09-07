@@ -2,6 +2,7 @@
 #include <cstring>
 #include <stdexcept>
 
+
 MessageTransport::MessageTransport(TcpSocket &socket) :_socket(socket) {}
 
 void MessageTransport::_read_exactly(uint8_t* buffer, uint32_t count) {
@@ -22,12 +23,14 @@ void MessageTransport::read(Message &message) {
 	uint8_t message_header[sizeof(message.id)+sizeof(message.type)+sizeof(message.length)] = { 0 };
 	_read_exactly(message_header, sizeof(message_header));
 	::memcpy(&message, message_header, sizeof(message_header));
-	message.data.reserve(message.length);
+	message.data.resize(message.length);
 	_read_exactly(message.data.data(), message.length);
 }
 
-void MessageTransport::write(const Message& message) {
+void MessageTransport::write(Message& message) {
 	//TODO: Handle little/big endian
+	//TODO: Override message length value with vector size
+	message.length = message.data.size();
 	_socket.send(reinterpret_cast<const uint8_t*>(&message),
 							 sizeof(message.id)+sizeof(message.type)+sizeof(message.length));
 	_socket.send(message.data.data(), message.length);

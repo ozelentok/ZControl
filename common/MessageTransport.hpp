@@ -12,13 +12,20 @@ enum CommanderMessageType: std::uint8_t
 	Write,
 };
 
+enum WorkerMessageType: std::uint8_t
+{
+	CommandResult = 0,
+};
 
 #pragma pack(push)  /* push current alignment to stack */
 #pragma pack(1)     /* set alignment to 1 byte boundary */
 // TODO: Remove length from logic code
 struct Message {
 	uint32_t id;
-	CommanderMessageType type;
+	union {
+		CommanderMessageType commander;
+		WorkerMessageType worker;
+	} type;
 	uint32_t length;
 	std::vector<uint8_t> data;
 };
@@ -36,5 +43,6 @@ class MessageTransport {
 		MessageTransport(MessageTransport&&) = delete;
 		~MessageTransport() = default;
 		void read(Message &message);
-		void write(const Message &message);
+		// TODO: Change to const
+		void write(Message &message);
 };

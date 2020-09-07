@@ -15,5 +15,7 @@ class BinaryDeserializer {
 		~BinaryDeserializer() = default;
 		uint8_t deserialize_uint8();
 		uint32_t deserialize_uint32();
+		int32_t deserialize_int32();
 		std::string deserialize_str();
+		std::vector<uint8_t> deserialize_vector();
 };
