@@ -15,9 +15,8 @@ class Worker {
 		Worker(const std::string &host, uint16_t port);
 		void work();
 
-		//TODO - use DEFFILEMODE  as 3rd parameter in worker
-		Message open(const std::string &file_path, int32_t flags);
-		Message close(uint32_t fd);
-		Message read(uint32_t fd, uint8_t *bytes, uint32_t size);
-		Message write(uint32_t fd, const uint8_t *bytes, uint32_t size);
+		Message _open(const Message& message);
+		Message _close(const Message& message);
+		Message _read(const Message& message);
+		Message _write(const Message& message);
 };

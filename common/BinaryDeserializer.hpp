@@ -8,6 +8,8 @@ class BinaryDeserializer {
 		const std::vector<uint8_t> &_serialized;
 		uint32_t _index;
 
+		void _validate_no_overflow(uint32_t size) const;
+
 	public:
 		BinaryDeserializer(const std::vector<uint8_t> &serialized);
 		BinaryDeserializer(const BinaryDeserializer&) = delete;
@@ -18,4 +20,5 @@ class BinaryDeserializer {
 		int32_t deserialize_int32();
 		std::string deserialize_str();
 		std::vector<uint8_t> deserialize_vector();
+		std::vector<uint8_t> deserialize_vector(uint32_t size);
 };

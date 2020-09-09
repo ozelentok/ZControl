@@ -17,20 +17,15 @@ enum WorkerMessageType: std::uint8_t
 	CommandResult = 0,
 };
 
-#pragma pack(push)  /* push current alignment to stack */
-#pragma pack(1)     /* set alignment to 1 byte boundary */
-// TODO: Remove length from logic code
-struct Message {
-	uint32_t id;
-	union {
-		CommanderMessageType commander;
-		WorkerMessageType worker;
-	} type;
-	uint32_t length;
-	std::vector<uint8_t> data;
-};
-#pragma pack(pop)   /* restore original alignment from stack */
+class Message {
+	public:
+		const uint32_t id;
+		const uint8_t type;
+		const std::vector<uint8_t> data;
 
+		//TODO: Remove copy of data
+		Message(uint32_t id, uint8_t type, const std::vector<uint8_t>& data);
+};
 
 class MessageTransport {
 	private:
@@ -42,7 +37,6 @@ class MessageTransport {
 		MessageTransport(const MessageTransport&) = delete;
 		MessageTransport(MessageTransport&&) = delete;
 		~MessageTransport() = default;
-		void read(Message &message);
-		// TODO: Change to const
-		void write(Message &message);
+		Message read();
+		void write(const Message &message);
 };

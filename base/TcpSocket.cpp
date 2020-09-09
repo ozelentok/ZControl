@@ -41,19 +41,16 @@ void TcpSocket::bind(const std::string &host, uint16_t port) {
 	if (addr.is_empty()) {
 		throw std::runtime_error("Unable to resolve hostname: " + host);
 	}
-	int result = ::bind(_socket, addr.get()->ai_addr, addr.get()->ai_addrlen);
-	if (result == -1) {
-		throw std::system_error(errno, std::system_category(), "Failed to bind");
-	}
 
 	int enable = 1;
-	result = setsockopt(_socket, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(enable));
+	int result = setsockopt(_socket, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(enable));
 	if (result == -1) {
 		throw std::system_error(errno, std::system_category(), "Failed to set socket option REUSEADDR");
 	}
-	result = setsockopt(_socket, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(enable));
+
+	result = ::bind(_socket, addr.get()->ai_addr, addr.get()->ai_addrlen);
 	if (result == -1) {
-		throw std::system_error(errno, std::system_category(), "Failed to set socket option REUSEPORT");
+		throw std::system_error(errno, std::system_category(), "Failed to bind");
 	}
 }
 
@@ -66,6 +63,7 @@ void TcpSocket::listen(int backlog) {
 
 void TcpSocket::close() {
 	if (_socket != -1) {
+		::shutdown(_socket, SHUT_RDWR);
 		::close(_socket);
 		_socket = -1;
 	}
