@@ -8,6 +8,20 @@ Commander::Commander(TcpSocket &connection)
 	: _transport(connection), _command_next_id(0), _last_errno(0) {
 }
 
+Commander::~Commander() {
+	try {
+		disconnect();
+	} catch (...) {
+	}
+}
+
+
+void Commander::disconnect() {
+	auto commander_msg = Message(_command_next_id++, CommanderMessageType::Disconnect, std::vector<uint8_t>(0));
+	_transport.write(commander_msg);
+	_transport.read();
+}
+
 int32_t Commander::open(const std::string &file_path, int32_t flags) {
 	BinarySerializer serializer;
 	serializer.serialize_str(file_path);

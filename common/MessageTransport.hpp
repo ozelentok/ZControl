@@ -6,7 +6,8 @@
 
 enum CommanderMessageType: std::uint8_t
 {
-	Open = 0,
+	Disconnect = 0,
+	Open,
 	Close,
 	Read,
 	Write,

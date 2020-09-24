@@ -7,9 +7,9 @@
 #include <unistd.h>
 
 Worker::Worker(const std::string &host, uint16_t port) :
-	_connection(), _transport(_connection), _next_fd_id(0) {
-		_connection.connect(host, port);
-	}
+	_connection(), _transport(_connection), _next_fd_id(0), _should_disconnect(false) {
+	_connection.connect(host, port);
+}
 
 int32_t Worker::_get_fd(int32_t fd_id) const {
 	auto entry = _fds.find(fd_id);
@@ -22,12 +22,15 @@ int32_t Worker::_get_fd(int32_t fd_id) const {
 }
 
 void Worker::work() {
-	while (true) {
+	while (!_should_disconnect) {
 		Message commander_msg = _transport.read();
 		printf("Got message: id: %d, type: %d, data_length: %ld\n",
 					 commander_msg.id, commander_msg.type, commander_msg.data.size());
 
 		switch (commander_msg.type) {
+			case CommanderMessageType::Disconnect:
+				_transport.write(_disconnect(commander_msg));
+				break;
 			case CommanderMessageType::Open:
 				_transport.write(_open(commander_msg));
 				break;
@@ -42,6 +45,12 @@ void Worker::work() {
 				break;
 		}
 	}
+}
+
+Message Worker::_disconnect(const Message& message) {
+	_should_disconnect = true;
+	printf("got disconnect message\n");
+	return Message(message.id, WorkerMessageType::CommandResult, std::vector<uint8_t>(0));
 }
 
 Message Worker::_open(const Message& message) {

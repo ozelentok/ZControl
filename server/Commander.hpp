@@ -10,7 +10,10 @@ class Commander {
 
 	public:
 		Commander(TcpSocket &connection);
+		Commander(const Commander&) = delete;
+		~Commander();
 		uint32_t last_errno() const;
+		void disconnect();
 		int32_t open(const std::string &file_path, int32_t flags);
 		int32_t close(int32_t fd);
 		int32_t read(int32_t fd, uint8_t *bytes, uint32_t size);

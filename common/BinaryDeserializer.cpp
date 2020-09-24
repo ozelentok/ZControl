@@ -37,7 +37,7 @@ int32_t BinaryDeserializer::deserialize_int32() {
 
 std::string BinaryDeserializer::deserialize_str() {
 	const uint32_t length = deserialize_uint32();
-	_validate_no_overflow(sizeof(length));
+	_validate_no_overflow(length);
 	std::string value(_serialized.begin() + _index, _serialized.begin() + _index + length);
 	_index += length;
 	return value;
@@ -49,7 +49,7 @@ std::vector<uint8_t> BinaryDeserializer::deserialize_vector() {
 }
 
 std::vector<uint8_t> BinaryDeserializer::deserialize_vector(uint32_t length) {
-	_validate_no_overflow(sizeof(length));
+	_validate_no_overflow(length);
 	std::vector<uint8_t> value(_serialized.begin() + _index, _serialized.begin() + _index + length);
 	_index += length;
 	return value;
