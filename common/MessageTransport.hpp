@@ -40,4 +40,5 @@ class MessageTransport {
 		~MessageTransport() = default;
 		Message read();
 		void write(const Message &message);
+		void close();
 };

@@ -1,12 +1,22 @@
+#pragma once
 #include "TcpSocket.hpp"
 #include "MessageTransport.hpp"
 #include <map>
+#include <future>
+#include <thread>
 
 class Commander {
 	private:
 		MessageTransport _transport;
 		uint32_t _command_next_id;
 		uint32_t _last_errno;
+		std::map<uint32_t, std::promise<Message>> _responses_promises;
+		std::thread _responses_reader;
+
+
+
+		Message _send_command(const Message &);
+		void _read_responses();
 
 	public:
 		Commander(TcpSocket &connection);

@@ -1,3 +1,4 @@
+#pragma once
 #include "TcpSocket.hpp"
 #include "MessageTransport.hpp"
 #include <map>
@@ -14,6 +15,7 @@ class Worker {
 
 	public:
 		Worker(const std::string &host, uint16_t port);
+		Worker(Worker&) = delete;
 		void work();
 
 		Message _disconnect(const Message& message);

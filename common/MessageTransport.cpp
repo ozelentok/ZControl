@@ -45,3 +45,7 @@ void MessageTransport::write(const Message& message) {
 	serializer.serialize_vector(message.data);
 	_socket.send(serializer.data());
 }
+
+void MessageTransport::close() {
+	_socket.close();
+}

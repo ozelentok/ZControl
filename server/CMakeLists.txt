@@ -2,4 +2,4 @@ add_executable(server
 	Commander.cpp
 	main.cpp
 )
-target_link_libraries(server PRIVATE base common)
+target_link_libraries(server PRIVATE base common pthread)
