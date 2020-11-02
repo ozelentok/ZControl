@@ -12,6 +12,7 @@ class Commander {
 		uint32_t _last_errno;
 		std::map<uint32_t, std::promise<Message>> _responses_promises;
 		std::thread _responses_reader;
+		bool _connected;
 
 
 

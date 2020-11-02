@@ -28,7 +28,9 @@ void server() {
 int main(int argc, char const* argv[])
 {
 	try {
-		server();
+		while (true) {
+			server();
+		}
 		return 0;
 	} catch (std::exception& e) {
 		printf("Exception: %s\n", e.what());
