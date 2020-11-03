@@ -3,7 +3,6 @@
 #include <thread>
 #include <functional>
 
-
 class ThreadPool {
 	private:
 		std::vector<std::thread> _threads;
@@ -15,5 +14,5 @@ class ThreadPool {
 		ThreadPool(uint16_t pool_size);
 		ThreadPool(const ThreadPool&) = delete;
 		~ThreadPool();
-		void submit(std::function<void()> func);
+		void submit(const std::function<void()> &func);
 };

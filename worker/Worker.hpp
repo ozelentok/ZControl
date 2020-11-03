@@ -19,7 +19,7 @@ class Worker {
 		Message _close(const Message& message);
 		Message _read(const Message& message);
 		Message _write(const Message& message);
-		void _handle_commander_message(const Message commander_msg);
+		void _handle_commander_message(const Message &commander_msg);
 
 	public:
 		Worker(const std::string &host, uint16_t port);

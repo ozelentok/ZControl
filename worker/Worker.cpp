@@ -26,14 +26,21 @@ int32_t Worker::_get_fd(int32_t fd_id) const {
 
 void Worker::work() {
 	while (!_should_disconnect) {
-		Message commander_msg = _transport.read();
-		printf("Got message: id: %d, type: %d, data_length: %ld\n",
-					commander_msg.id, commander_msg.type, commander_msg.data.size());
-		_thread_pool.submit(std::bind(&Worker::_handle_commander_message, this, commander_msg));
+		try {
+			Message commander_msg(_transport.read());
+			printf("Got message: id: %d, type: %d, data_length: %ld\n",
+						 commander_msg.id, commander_msg.type, commander_msg.data.size());
+			_thread_pool.submit(std::bind(&Worker::_handle_commander_message, this, std::move(commander_msg)));
+		} catch (const TransportClosed) {
+			_should_disconnect = true;
+		} catch (...) {
+			_should_disconnect = true;
+			printf("Unknown excpetion\n");
+		}
 	}
 }
 
-void Worker::_handle_commander_message(const Message commander_msg) {
+void Worker::_handle_commander_message(const Message &commander_msg) {
 	switch (commander_msg.type) {
 		case CommanderMessageType::Disconnect:
 			_transport.write(_disconnect(commander_msg));

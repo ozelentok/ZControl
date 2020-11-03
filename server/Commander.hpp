@@ -14,8 +14,6 @@ class Commander {
 		std::thread _responses_reader;
 		bool _connected;
 
-
-
 		Message _send_command(const Message &);
 		void _read_responses();
 

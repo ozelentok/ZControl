@@ -1,10 +1,8 @@
 #include "MessageTransport.hpp"
 #include "BinarySerializer.hpp"
 #include "BinaryDeserializer.hpp"
-#include <cstring>
-#include <stdexcept>
 
-Message::Message(uint32_t id, uint8_t type, const std::vector<uint8_t>& data) :
+Message::Message(uint32_t id, uint8_t type, const std::vector<uint8_t>&& data) :
 	id(id), type(type), data(data) {}
 
 MessageTransport::MessageTransport(TcpSocket &socket) :_socket(socket) {}
@@ -15,8 +13,7 @@ void MessageTransport::_read_exactly(uint8_t* buffer, uint32_t count) {
 	while (total_bytes_read < count) {
 		bytes_read = _socket.recv(buffer + total_bytes_read, count - total_bytes_read);
 		if (bytes_read == 0) {
-			//TODO: Handle connection close
-			throw std::runtime_error("Connection closed");
+			throw TransportClosed();
 		}
 		total_bytes_read += bytes_read;
 	}
@@ -37,7 +34,7 @@ Message MessageTransport::read() {
 	lock.unlock();
 	BinaryDeserializer msg_deserializer(msg_buffer);
 	auto data = msg_deserializer.deserialize_vector(data_size);
-	return Message(id, type, data);
+	return Message(id, type, std::move(data));
 }
 
 void MessageTransport::write(const Message& message) {

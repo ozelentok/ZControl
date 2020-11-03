@@ -16,8 +16,8 @@ ThreadPool::~ThreadPool() {
 	} catch (...) {}
 }
 
-void ThreadPool::submit(std::function<void()> func) {
-	_queue.push(func);
+void ThreadPool::submit(const std::function<void()> &func) {
+	_queue.push(std::forward<const std::function<void()>>(func));
 }
 
 void ThreadPool::_poll_queue() {

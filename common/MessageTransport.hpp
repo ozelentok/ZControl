@@ -21,12 +21,17 @@ enum WorkerMessageType: std::uint8_t
 
 class Message {
 	public:
-		const uint32_t id;
-		const uint8_t type;
-		const std::vector<uint8_t> data;
+		uint32_t id;
+		uint8_t type;
+		std::vector<uint8_t> data;
 
-		//TODO: Remove copy of data
-		Message(uint32_t id, uint8_t type, const std::vector<uint8_t>& data);
+		Message(uint32_t id, uint8_t type, const std::vector<uint8_t>&& data);
+};
+
+
+class TransportClosed: public std::runtime_error {
+public:
+	TransportClosed(): std::runtime_error("Transport Closed") {}
 };
 
 class MessageTransport {
