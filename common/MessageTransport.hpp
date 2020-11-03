@@ -30,8 +30,8 @@ class Message {
 
 
 class TransportClosed: public std::runtime_error {
-public:
-	TransportClosed(): std::runtime_error("Transport Closed") {}
+	public:
+		TransportClosed(): std::runtime_error("Transport Closed") {}
 };
 
 class MessageTransport {

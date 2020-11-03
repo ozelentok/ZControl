@@ -19,7 +19,7 @@ class ConcurrentQueue {
 	public:
 		ConcurrentQueue() : _shutdown(false) {};
 		ConcurrentQueue(const ConcurrentQueue&) = delete;
-		ConcurrentQueue(const ConcurrentQueue&&) = delete;
+		ConcurrentQueue(ConcurrentQueue&&) = delete;
 
 		bool empty() {
 			std::lock_guard<std::mutex> lock(_mx);

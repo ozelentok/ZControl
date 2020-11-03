@@ -13,6 +13,7 @@ class ThreadPool {
 	public:
 		ThreadPool(uint16_t pool_size);
 		ThreadPool(const ThreadPool&) = delete;
+		ThreadPool(ThreadPool&&) = delete;
 		~ThreadPool();
 		void submit(const std::function<void()> &func);
 };
