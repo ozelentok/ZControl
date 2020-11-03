@@ -2,6 +2,7 @@
 #include "TcpSocket.hpp"
 #include <string>
 #include <vector>
+#include <mutex>
 #include <stdint.h>
 
 enum CommanderMessageType: std::uint8_t
@@ -31,6 +32,8 @@ class Message {
 class MessageTransport {
 	private:
 		TcpSocket &_socket;
+		std::mutex _read_mx;
+		std::mutex _write_mx;
 		void _read_exactly(uint8_t* buffer, uint32_t count);
 
 	public:

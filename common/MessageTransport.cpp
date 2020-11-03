@@ -23,6 +23,7 @@ void MessageTransport::_read_exactly(uint8_t* buffer, uint32_t count) {
 }
 
 Message MessageTransport::read() {
+	std::unique_lock<std::mutex> lock(_read_mx);
 	std::vector<uint8_t> header_buffer(sizeof(uint32_t) + sizeof(uint8_t) + sizeof(uint32_t));
 	_read_exactly(header_buffer.data(), header_buffer.size());
 
@@ -33,6 +34,7 @@ Message MessageTransport::read() {
 
 	std::vector<uint8_t> msg_buffer(data_size);
 	_read_exactly(msg_buffer.data(), msg_buffer.size());
+	lock.unlock();
 	BinaryDeserializer msg_deserializer(msg_buffer);
 	auto data = msg_deserializer.deserialize_vector(data_size);
 	return Message(id, type, data);
@@ -43,6 +45,7 @@ void MessageTransport::write(const Message& message) {
 	serializer.serialize_uint32(message.id);
 	serializer.serialize_uint8(message.type);
 	serializer.serialize_vector(message.data);
+	std::lock_guard<std::mutex> lock(_write_mx);
 	_socket.send(serializer.data());
 }
 

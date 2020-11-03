@@ -1,13 +1,16 @@
 #include "Worker.hpp"
 #include "BinarySerializer.hpp"
 #include "BinaryDeserializer.hpp"
+#include <functional>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
 
 Worker::Worker(const std::string &host, uint16_t port) :
-	_connection(), _transport(_connection), _next_fd_id(0), _should_disconnect(false) {
+	_connection(), _transport(_connection),
+	_thread_pool(std::thread::hardware_concurrency()),
+	_next_fd_id(0), _should_disconnect(false) {
 	_connection.connect(host, port);
 }
 
@@ -25,25 +28,28 @@ void Worker::work() {
 	while (!_should_disconnect) {
 		Message commander_msg = _transport.read();
 		printf("Got message: id: %d, type: %d, data_length: %ld\n",
-					 commander_msg.id, commander_msg.type, commander_msg.data.size());
+					commander_msg.id, commander_msg.type, commander_msg.data.size());
+		_thread_pool.submit(std::bind(&Worker::_handle_commander_message, this, commander_msg));
+	}
+}
 
-		switch (commander_msg.type) {
-			case CommanderMessageType::Disconnect:
-				_transport.write(_disconnect(commander_msg));
-				break;
-			case CommanderMessageType::Open:
-				_transport.write(_open(commander_msg));
-				break;
-			case CommanderMessageType::Close:
-				_transport.write(_close(commander_msg));
-				break;
-			case CommanderMessageType::Read:
-				_transport.write(_read(commander_msg));
-				break;
-			case CommanderMessageType::Write:
-				_transport.write(_write(commander_msg));
-				break;
-		}
+void Worker::_handle_commander_message(const Message commander_msg) {
+	switch (commander_msg.type) {
+		case CommanderMessageType::Disconnect:
+			_transport.write(_disconnect(commander_msg));
+			break;
+		case CommanderMessageType::Open:
+			_transport.write(_open(commander_msg));
+			break;
+		case CommanderMessageType::Close:
+			_transport.write(_close(commander_msg));
+			break;
+		case CommanderMessageType::Read:
+			_transport.write(_read(commander_msg));
+			break;
+		case CommanderMessageType::Write:
+			_transport.write(_write(commander_msg));
+			break;
 	}
 }
 
