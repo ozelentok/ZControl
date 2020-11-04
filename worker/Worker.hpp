@@ -3,6 +3,7 @@
 #include "MessageTransport.hpp"
 #include "ThreadPool.hpp"
 #include "FileCommandsHandler.hpp"
+#include "DirCommandsHandler.hpp"
 
 class Worker {
 	private:
@@ -10,6 +11,7 @@ class Worker {
 		MessageTransport _transport;
 		ThreadPool _thread_pool;
 		FileCommandsHandler _file_handler;
+		DirCommandsHandler _dir_handler;
 		bool _should_disconnect;
 
 		Message _disconnect(const Message& message);

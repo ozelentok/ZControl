@@ -23,6 +23,17 @@ void server() {
 	printf("bytes written: %d\n", bytes_written);
 	int32_t close_result = commander.close(fd_id);
 	printf("close result: %d\n", close_result);
+
+	int32_t dfd = commander.opendir("/tmp/ac");
+	printf("opendir result: %d\n", dfd);
+	auto dir_entries = commander.readdir(dfd, 20);
+	for (const auto &dir_entry: dir_entries) {
+		printf("dir entry: %d:%d:%s\n",
+					 dir_entry.inode(),
+					 dir_entry.type(), dir_entry.name().c_str());
+	}
+	int32_t closedir_result = commander.closedir(dfd);
+	printf("closedir result: %d\n", closedir_result);
 }
 
 int main(int argc, char const* argv[])

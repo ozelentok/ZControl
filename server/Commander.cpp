@@ -128,3 +128,53 @@ int32_t Commander::write(int32_t fd, const uint8_t *bytes, uint32_t size) {
 	}
 	return value;
 }
+
+int32_t Commander::opendir(const std::string &dir_path) {
+	BinarySerializer serializer;
+	serializer.serialize_str(dir_path);
+
+	auto commander_msg = Message(_command_next_id++, CommanderMessageType::OpenDir, serializer.data());
+	Message worker_msg = _send_command(commander_msg);
+	BinaryDeserializer deserializer(worker_msg.data);
+
+	int32_t value = deserializer.deserialize_int32();
+	if (value < 0) {
+		_last_errno = deserializer.deserialize_int32();
+	}
+	return value;
+}
+
+int32_t Commander::closedir(int32_t fd) {
+	BinarySerializer serializer;
+	serializer.serialize_int32(fd);
+
+	auto commander_msg = Message(_command_next_id++, CommanderMessageType::CloseDir, serializer.data());
+	Message worker_msg = _send_command(commander_msg);
+	BinaryDeserializer deserializer(worker_msg.data);
+
+	int32_t value = deserializer.deserialize_int32();
+	if (value < 0) {
+		_last_errno = deserializer.deserialize_int32();
+	}
+	return value;
+}
+
+std::vector<DirEntry> Commander::readdir(int32_t fd, uint32_t entries) {
+	BinarySerializer serializer;
+	serializer.serialize_int32(fd);
+	serializer.serialize_uint32(entries);
+
+	auto commander_msg = Message(_command_next_id++, CommanderMessageType::ReadDir, serializer.data());
+	Message worker_msg = _send_command(commander_msg);
+	BinaryDeserializer deserializer(worker_msg.data);
+
+	std::vector<DirEntry> dir_entries;
+	while (deserializer.bytes_available() > sizeof(int32_t)) {
+		auto inode = deserializer.deserialize_uint32();
+		auto file_type = deserializer.deserialize_uint8();
+		dir_entries.push_back(DirEntry(
+				inode, file_type, deserializer.deserialize_str()));
+	}
+	_last_errno = deserializer.deserialize_int32();
+	return dir_entries;
+}

@@ -1,6 +1,7 @@
 #pragma once
 #include "TcpSocket.hpp"
 #include "MessageTransport.hpp"
+#include "DirEntry.hpp"
 #include <map>
 #include <future>
 #include <thread>
@@ -27,4 +28,7 @@ class Commander {
 		int32_t close(int32_t fd);
 		int32_t read(int32_t fd, uint8_t *bytes, uint32_t size);
 		int32_t write(int32_t fd, const uint8_t *bytes, uint32_t size);
+		int32_t opendir(const std::string &dir_path);
+		int32_t closedir(int32_t fd);
+		std::vector<DirEntry> readdir(int32_t fd, uint32_t entries);
 };

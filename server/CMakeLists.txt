@@ -1,4 +1,5 @@
 add_executable(server
+	DirEntry.cpp
 	Commander.cpp
 	main.cpp
 )

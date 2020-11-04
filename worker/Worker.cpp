@@ -45,6 +45,15 @@ void Worker::_handle_commander_message(const Message &commander_msg) {
 		case CommanderMessageType::Write:
 			_transport.write(_file_handler.write(commander_msg));
 			break;
+		case CommanderMessageType::OpenDir:
+			_transport.write(_dir_handler.opendir(commander_msg));
+			break;
+		case CommanderMessageType::CloseDir:
+			_transport.write(_dir_handler.closedir(commander_msg));
+			break;
+		case CommanderMessageType::ReadDir:
+			_transport.write(_dir_handler.readdir(commander_msg));
+			break;
 	}
 }
 

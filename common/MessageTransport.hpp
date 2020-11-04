@@ -12,6 +12,9 @@ enum CommanderMessageType: std::uint8_t
 	Close,
 	Read,
 	Write,
+	OpenDir,
+	CloseDir,
+	ReadDir,
 };
 
 enum WorkerMessageType: std::uint8_t

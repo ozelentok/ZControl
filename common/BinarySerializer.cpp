@@ -1,4 +1,7 @@
 #include "BinarySerializer.hpp"
+#include <stdexcept>
+#include <cstring>
+	
 
 BinarySerializer::BinarySerializer() : _index(0) {}
 
@@ -34,6 +37,17 @@ void BinarySerializer::serialize_str(const std::string &value) {
 	_index += length;
 }
 
+void BinarySerializer::serialize_str(const char *value) {
+	if (value == nullptr) {
+		throw std::invalid_argument("NULL Parameter");
+	}
+	const uint32_t length = ::strlen(value);
+	serialize_uint32(length);
+	_serialized.reserve(_index + length);
+	_serialized.insert(_serialized.end(), value, value + length);
+	_index += length;
+}
+
 void BinarySerializer::serialize_vector(const std::vector<uint8_t> &value) {
 	const uint32_t length = value.size();
 	serialize_uint32(length);
@@ -43,6 +57,5 @@ void BinarySerializer::serialize_vector(const std::vector<uint8_t> &value) {
 }
 
 std::vector<uint8_t> BinarySerializer::data() const {
-
 	return _serialized;
 }

@@ -1,5 +1,6 @@
 add_executable(worker 
-	FileCommandsHandler
+	FileCommandsHandler.cpp
+	DirCommandsHandler.cpp
 	Worker.cpp
 	main.cpp
 )

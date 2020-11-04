@@ -5,11 +5,15 @@ BinaryDeserializer::BinaryDeserializer(const std::vector<uint8_t> &serialized) :
 }
 
 void BinaryDeserializer::_validate_no_overflow(uint32_t size) const {
-	const uint32_t available_bytes_count = _serialized.size() - _index;
-	if (size > available_bytes_count) {
+	if (size > bytes_available()) {
 		throw std::runtime_error("Expected size of serialized object is larger than available bytes: " +
-															std::to_string(size) + " > " + std::to_string(available_bytes_count));
+															std::to_string(size) + " > " + std::to_string(bytes_available()));
 	}
+}
+
+
+uint32_t BinaryDeserializer::bytes_available() const {
+	return _serialized.size() - _index;
 }
 
 uint8_t BinaryDeserializer::deserialize_uint8() {

@@ -15,6 +15,7 @@ class BinaryDeserializer {
 		BinaryDeserializer(const BinaryDeserializer&) = delete;
 		BinaryDeserializer(BinaryDeserializer&&) = delete;
 		~BinaryDeserializer() = default;
+		uint32_t bytes_available() const;
 		uint8_t deserialize_uint8();
 		uint32_t deserialize_uint32();
 		int32_t deserialize_int32();
