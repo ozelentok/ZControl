@@ -5,5 +5,6 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_subdirectory(base)
 add_subdirectory(common)
-add_subdirectory(worker)
+add_subdirectory(commander)
 add_subdirectory(server)
+add_subdirectory(worker)
