@@ -8,6 +8,7 @@
 enum CommanderMessageType: std::uint8_t
 {
 	Disconnect = 0,
+	GetAtr,
 	Open,
 	Close,
 	Read,
@@ -39,13 +40,14 @@ class TransportClosed: public std::runtime_error {
 
 class MessageTransport {
 	private:
-		TcpSocket &_socket;
+		TcpSocket _socket;
 		std::mutex _read_mx;
 		std::mutex _write_mx;
 		void _read_exactly(uint8_t* buffer, uint32_t count);
 
 	public:
-		MessageTransport(TcpSocket &socket);
+		MessageTransport(const std::string &host, uint16_t port);
+		MessageTransport(TcpSocket &&socket);
 		MessageTransport(const MessageTransport&) = delete;
 		MessageTransport(MessageTransport&&) = delete;
 		~MessageTransport() = default;

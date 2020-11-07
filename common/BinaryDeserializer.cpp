@@ -39,6 +39,15 @@ int32_t BinaryDeserializer::deserialize_int32() {
 	return value;
 }
 
+int64_t BinaryDeserializer::deserialize_int64() {
+	int64_t value = 0;
+	_validate_no_overflow(sizeof(value));
+	for (uint32_t i = 1; i <= sizeof(value); i++, _index++) {
+		value += _serialized[_index] << (8 * (sizeof(value) - i));
+	}
+	return value;
+}
+
 std::string BinaryDeserializer::deserialize_str() {
 	const uint32_t length = deserialize_uint32();
 	_validate_no_overflow(length);

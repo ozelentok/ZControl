@@ -5,7 +5,11 @@
 Message::Message(uint32_t id, uint8_t type, const std::vector<uint8_t>&& data) :
 	id(id), type(type), data(data) {}
 
-MessageTransport::MessageTransport(TcpSocket &socket) :_socket(socket) {}
+MessageTransport::MessageTransport(const std::string &host, uint16_t port) {
+	_socket.connect(host, port);
+}
+
+MessageTransport::MessageTransport(TcpSocket &&socket) :_socket(std::move(socket)) {}
 
 void MessageTransport::_read_exactly(uint8_t* buffer, uint32_t count) {
 	uint32_t bytes_read = 0;

@@ -10,7 +10,7 @@ class Commander {
 	private:
 		MessageTransport _transport;
 		uint32_t _command_next_id;
-		uint32_t _last_errno;
+		int32_t _last_errno;
 		std::map<uint32_t, std::promise<Message>> _responses_promises;
 		std::thread _responses_reader;
 		bool _connected;
@@ -19,11 +19,12 @@ class Commander {
 		void _read_responses();
 
 	public:
-		Commander(TcpSocket &connection);
+		Commander(TcpSocket &&connection);
 		Commander(const Commander&) = delete;
 		~Commander();
-		uint32_t last_errno() const;
+		int32_t last_errno() const;
 		void disconnect();
+		bool getattr(const std::string &file_path, struct stat &file_info);
 		int32_t open(const std::string &file_path, int32_t flags);
 		int32_t close(int32_t fd);
 		int32_t read(int32_t fd, uint8_t *bytes, uint32_t size);

@@ -26,6 +26,27 @@ int32_t FileCommandsHandler::_get_fd(int32_t fd_id) const {
 	return entry->second;
 }
 
+Message FileCommandsHandler::getattr(const Message& message) {
+	BinaryDeserializer deserializer(message.data);
+	const auto file_path = deserializer.deserialize_str();
+
+	struct stat file_info = { 0 };
+	const int stat_result = ::stat(file_path.c_str(), &file_info);
+	BinarySerializer serializer;
+	serializer.serialize_uint8(stat_result == 0 ? 1 : 0);
+	serializer.serialize_int32(errno);
+	if (stat_result == 0) {
+		serializer.serialize_uint32(file_info.st_mode);
+		serializer.serialize_uint32(file_info.st_uid);
+		serializer.serialize_uint32(file_info.st_gid);
+		serializer.serialize_int64(file_info.st_size);
+		serializer.serialize_int64(file_info.st_atim.tv_sec);
+		serializer.serialize_int64(file_info.st_mtim.tv_sec);
+		serializer.serialize_int64(file_info.st_ctim.tv_sec);
+	}
+	return Message(message.id, WorkerMessageType::CommandResult, serializer.data());
+}
+
 Message FileCommandsHandler::open(const Message& message) {
 	BinaryDeserializer deserializer(message.data);
 	const auto file_path = deserializer.deserialize_str();

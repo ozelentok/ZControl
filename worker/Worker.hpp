@@ -7,7 +7,6 @@
 
 class Worker {
 	private:
-		TcpSocket _connection;
 		MessageTransport _transport;
 		ThreadPool _thread_pool;
 		FileCommandsHandler _file_handler;

@@ -5,10 +5,9 @@
 
 
 Worker::Worker(const std::string &host, uint16_t port) :
-	_connection(), _transport(_connection),
+	_transport(host, port),
 	_thread_pool(std::thread::hardware_concurrency()),
 	_should_disconnect(false) {
-	_connection.connect(host, port);
 }
 
 
@@ -32,6 +31,9 @@ void Worker::_handle_commander_message(const Message &commander_msg) {
 	switch (commander_msg.type) {
 		case CommanderMessageType::Disconnect:
 			_transport.write(_disconnect(commander_msg));
+			break;
+		case CommanderMessageType::GetAtr:
+			_transport.write(_file_handler.getattr(commander_msg));
 			break;
 		case CommanderMessageType::Open:
 			_transport.write(_file_handler.open(commander_msg));

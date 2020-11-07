@@ -3,9 +3,10 @@
 #include "BinaryDeserializer.hpp"
 #include <stdexcept>
 #include <cstring>
+#include <sys/stat.h>
 
-Commander::Commander(TcpSocket &connection)
-	: _transport(connection), _command_next_id(0), _last_errno(0),
+Commander::Commander(TcpSocket &&connection)
+	: _transport(std::move(connection)), _command_next_id(0), _last_errno(0),
 	_responses_reader(&Commander::_read_responses, this),
 	_connected(true) {
 }
@@ -17,6 +18,10 @@ Commander::~Commander() {
 		_responses_reader.join();
 	} catch (...) {
 	}
+}
+
+int32_t Commander::last_errno() const {
+	return _last_errno;
 }
 
 void Commander::_read_responses() {
@@ -52,6 +57,30 @@ void Commander::disconnect() {
 	auto commander_msg = Message(_command_next_id++, CommanderMessageType::Disconnect, std::vector<uint8_t>(0));
 	_send_command(commander_msg);
 	_connected = false;
+}
+
+bool Commander::getattr(const std::string &file_path, struct stat &file_info) {
+	BinarySerializer serializer;
+	serializer.serialize_str(file_path);
+
+	auto commander_msg = Message(_command_next_id++, CommanderMessageType::GetAtr, serializer.data());
+	Message worker_msg = _send_command(commander_msg);
+	BinaryDeserializer deserializer(worker_msg.data);
+
+	auto value = deserializer.deserialize_uint8();
+	uint32_t last_errno = deserializer.deserialize_int32();
+	if (!value) {
+		_last_errno = last_errno;
+	}	else {
+		file_info.st_mode = deserializer.deserialize_uint32();
+		file_info.st_uid = deserializer.deserialize_uint32();
+		file_info.st_gid = deserializer.deserialize_uint32();
+		file_info.st_size = deserializer.deserialize_int64();
+		file_info.st_atim.tv_sec = deserializer.deserialize_int64();
+		file_info.st_mtim.tv_sec = deserializer.deserialize_int64();
+		file_info.st_ctim.tv_sec = deserializer.deserialize_int64();
+	}
+	return value;
 }
 
 int32_t Commander::open(const std::string &file_path, int32_t flags) {

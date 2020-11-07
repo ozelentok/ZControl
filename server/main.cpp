@@ -10,9 +10,8 @@ void server() {
 	server.bind("127.0.0.1", 4444);
 	server.listen(1);
 	printf("Listening on 127.0.0.1:4444\n");
-	TcpSocket conn = server.accept();
+	Commander commander(server.accept());
 	printf("Connection established\n");
-	Commander commander(conn);
 	uint32_t fd_id = commander.open("/tmp/a.txt", O_CREAT | O_RDWR);
 	printf("fd_id: %d\n", fd_id);
 	std::string buf = "Hello world\n";

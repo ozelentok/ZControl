@@ -5,48 +5,43 @@
 #include <fcntl.h>
 #include <cstdio>
 #include <cstring>
+#include <memory>
+#include <unistd.h>
+
+
+std::thread conn_thread;
+std::unique_ptr<Commander> commander;
 
 void server() {
 	TcpSocket server;
+
 	server.bind("127.0.0.1", 4444);
 	server.listen(1);
 	printf("Listening on 127.0.0.1:4444\n");
-	TcpSocket conn = server.accept();
+	commander = std::make_unique<Commander>(server.accept());
 	printf("Connection established\n");
-	Commander commander(conn);
-	uint32_t fd_id = commander.open("/tmp/a.txt", O_CREAT | O_RDWR);
-	printf("fd_id: %d\n", fd_id);
-	std::string buf = "Hello world\n";
-	int32_t bytes_written = commander.write(fd_id, reinterpret_cast<const uint8_t*>(buf.c_str()), buf.length());
-	printf("bytes written: %d\n", bytes_written);
-	std::string buf2 = "Another write\n";
-	bytes_written = commander.write(fd_id, reinterpret_cast<const uint8_t*>(buf2.c_str()), buf2.length());
-	printf("bytes written: %d\n", bytes_written);
-	int32_t close_result = commander.close(fd_id);
-	printf("close result: %d\n", close_result);
+	pid_t pid = getpid();
+	printf("SERVER PID: %d\n", pid);
+};
 
-	int32_t dfd = commander.opendir("/tmp/ac");
-	printf("opendir result: %d\n", dfd);
-	auto dir_entries = commander.readdir(dfd, 20);
-	for (const auto &dir_entry: dir_entries) {
-		printf("dir entry: %d:%d:%s\n",
-					 dir_entry.inode(),
-					 dir_entry.type(), dir_entry.name().c_str());
-	}
-	int32_t closedir_result = commander.closedir(dfd);
-	printf("closedir result: %d\n", closedir_result);
+static void* init_callback(struct fuse_conn_info *conn) {
+	conn_thread = std::thread(server);
+	return nullptr;
 }
 
 static int getattr_callback(const char *path, struct stat *stbuf) {
 	memset(stbuf, 0, sizeof(struct stat));
 
-	if (strcmp(path, "/") == 0) {
-		stbuf->st_mode = S_IFDIR | 0755;
-		stbuf->st_nlink = 2;
-		return 0;
+	const bool result = commander->getattr(path, *stbuf);
+	if (!result) {
+		return commander->last_errno();
 	}
-
-	return -ENOENT;
+	return 0;
+	// if (strcmp(path, "/") == 0) {
+	// 	stbuf->st_mode = S_IFDIR | 0755;
+	// 	stbuf->st_nlink = 2;
+	// 	return 0;
+	// }
 }
 
 static int readdir_callback(const char *path, void *buf, fuse_fill_dir_t filler,
@@ -54,9 +49,24 @@ static int readdir_callback(const char *path, void *buf, fuse_fill_dir_t filler,
 	(void) offset;
 	(void) fi;
 
-	filler(buf, ".", NULL, 0);
-	filler(buf, "..", NULL, 0);
-
+	auto dfd = commander->opendir(path);
+	if (dfd == -1) {
+		return commander->last_errno();
+	}
+	auto dirs = commander->readdir(dfd, 40);
+	if (commander->last_errno() != 0) {
+		return commander->last_errno();
+	}
+	
+	for (const DirEntry& e : dirs) {
+		struct stat st = { 0 };
+		st.st_mode = e.type() << 12;
+		if (filler(buf, e.name().c_str(), &st, 0)) {
+			printf("Filler failed\n");
+			break;
+		}
+	}
+	commander->closedir(dfd);
 	return 0;
 }
 
@@ -75,9 +85,12 @@ static struct fuse_operations fuse_example_operations = {
 	.open = open_callback,
 	.read = read_callback,
 	.readdir = readdir_callback,
+	.init = init_callback,
 };
 
 int main(int argc, char *argv[])
 {
+	pid_t pid = getpid();
+	printf("MAIN PID: %d\n", pid);
 	return fuse_main(argc, argv, &fuse_example_operations, NULL);
 }
