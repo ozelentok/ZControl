@@ -17,5 +17,7 @@ class FileCommandsHandler {
 		Message open(const Message& message);
 		Message close(const Message& message);
 		Message read(const Message& message);
+		Message pread(const Message& message);
 		Message write(const Message& message);
+		Message pwrite(const Message& message);
 };

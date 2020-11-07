@@ -50,9 +50,10 @@ Message FileCommandsHandler::getattr(const Message& message) {
 Message FileCommandsHandler::open(const Message& message) {
 	BinaryDeserializer deserializer(message.data);
 	const auto file_path = deserializer.deserialize_str();
-	const auto flags = deserializer.deserialize_uint32();
+	const auto flags = deserializer.deserialize_int32();
+	const auto mode = deserializer.deserialize_int32();
 
-	const int32_t fd = ::open(file_path.c_str(), flags, DEFFILEMODE);
+	const int32_t fd = ::open(file_path.c_str(), flags, mode);
 	int32_t fd_id = -1;
 	if (fd >= 0) {
 		//TODO - use atomic counter
@@ -66,6 +67,7 @@ Message FileCommandsHandler::open(const Message& message) {
 	serializer.serialize_int32(errno);
 	return Message(message.id, WorkerMessageType::CommandResult, serializer.data());
 }
+
 
 Message FileCommandsHandler::close(const Message& message) {
 	BinaryDeserializer deserializer(message.data);
@@ -98,12 +100,45 @@ Message FileCommandsHandler::read(const Message& message) {
 	return Message(message.id, WorkerMessageType::CommandResult, serializer.data());
 }
 
+Message FileCommandsHandler::pread(const Message& message) {
+	BinaryDeserializer deserializer(message.data);
+	const auto fd_id = deserializer.deserialize_int32();
+	const auto size = deserializer.deserialize_uint32();
+	const auto offset = deserializer.deserialize_int64();
+	std::vector<uint8_t> buffer(size);
+
+	const int32_t value = ::pread(_get_fd(fd_id), buffer.data(), size, offset);
+
+	BinarySerializer serializer;
+	serializer.serialize_int32(value);
+	serializer.serialize_int32(errno);
+	if (value >= 0) {
+		buffer.resize(value);
+	}
+	serializer.serialize_vector(buffer);
+	return Message(message.id, WorkerMessageType::CommandResult, serializer.data());
+}
+
 Message FileCommandsHandler::write(const Message& message) {
 	BinaryDeserializer deserializer(message.data);
 	const auto fd_id = deserializer.deserialize_int32();
 	const auto bytes = deserializer.deserialize_vector();
 
 	const int32_t value = ::write(_get_fd(fd_id), bytes.data(), bytes.size());
+
+	BinarySerializer serializer;
+	serializer.serialize_int32(value);
+	serializer.serialize_int32(errno);
+	return Message(message.id, WorkerMessageType::CommandResult, serializer.data());
+}
+
+Message FileCommandsHandler::pwrite(const Message& message) {
+	BinaryDeserializer deserializer(message.data);
+	const auto fd_id = deserializer.deserialize_int32();
+	const auto offset = deserializer.deserialize_int64();
+	const auto bytes = deserializer.deserialize_vector();
+
+	const int32_t value = ::pwrite(_get_fd(fd_id), bytes.data(), bytes.size(), offset);
 
 	BinarySerializer serializer;
 	serializer.serialize_int32(value);

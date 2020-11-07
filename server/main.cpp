@@ -7,7 +7,7 @@
 
 void server() {
 	TcpSocket server;
-	server.bind("127.0.0.1", 4444);
+	server.bind("0.0.0.0", 4444);
 	server.listen(1);
 	printf("Listening on 127.0.0.1:4444\n");
 	Commander commander(server.accept());

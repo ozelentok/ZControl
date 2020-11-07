@@ -83,10 +83,11 @@ bool Commander::getattr(const std::string &file_path, struct stat &file_info) {
 	return value;
 }
 
-int32_t Commander::open(const std::string &file_path, int32_t flags) {
+int32_t Commander::open(const std::string &file_path, int32_t flags, int32_t mode) {
 	BinarySerializer serializer;
 	serializer.serialize_str(file_path);
-	serializer.serialize_uint32(flags);
+	serializer.serialize_int32(flags);
+	serializer.serialize_int32(mode);
 
 	auto commander_msg = Message(_command_next_id++, CommanderMessageType::Open, serializer.data());
 	Message worker_msg = _send_command(commander_msg);
@@ -139,15 +140,63 @@ int32_t Commander::read(int32_t fd, uint8_t *bytes, uint32_t size) {
 	return value;
 }
 
+int32_t Commander::pread(int32_t fd, uint8_t *bytes, uint32_t size, uint64_t offset) {
+	BinarySerializer serializer;
+	serializer.serialize_int32(fd);
+	serializer.serialize_uint32(size);
+	serializer.serialize_int64(offset);
+
+	auto commander_msg = Message(_command_next_id++, CommanderMessageType::PRead, serializer.data());
+	Message worker_msg = _send_command(commander_msg);
+	BinaryDeserializer deserializer(worker_msg.data);
+
+	int32_t value = deserializer.deserialize_int32();
+	uint32_t last_errno = deserializer.deserialize_int32();
+	if (value < 0) {
+		_last_errno = last_errno;
+		return value;
+	}
+
+	auto bytes_vector = deserializer.deserialize_vector();
+	if (bytes_vector.size() > size) {
+		throw std::runtime_error("pread returned more bytes than requested");
+	}
+
+	::memcpy(bytes, bytes_vector.data(), value);
+	return value;
+}
+
 int32_t Commander::write(int32_t fd, const uint8_t *bytes, uint32_t size) {
 	BinarySerializer serializer;
 	serializer.serialize_int32(fd);
 	serializer.serialize_uint32(size);
+	//TODO: Serealize bytes array
 	for (uint32_t i = 0; i < size; i++) {
 		serializer.serialize_uint8(bytes[i]);
 	}
 
 	auto commander_msg = Message(_command_next_id++, CommanderMessageType::Write, serializer.data());
+	Message worker_msg = _send_command(commander_msg);
+	BinaryDeserializer deserializer(worker_msg.data);
+
+	int32_t value = deserializer.deserialize_int32();
+	if (value < 0) {
+		_last_errno = deserializer.deserialize_int32();
+	}
+	return value;
+}
+
+int32_t Commander::pwrite(int32_t fd, const uint8_t *bytes, uint32_t size, uint64_t offset) {
+	BinarySerializer serializer;
+	serializer.serialize_int32(fd);
+	serializer.serialize_int64(offset);
+	serializer.serialize_uint32(size);
+	//TODO: Serealize bytes array
+	for (uint32_t i = 0; i < size; i++) {
+		serializer.serialize_uint8(bytes[i]);
+	}
+
+	auto commander_msg = Message(_command_next_id++, CommanderMessageType::PWrite, serializer.data());
 	Message worker_msg = _send_command(commander_msg);
 	BinaryDeserializer deserializer(worker_msg.data);
 

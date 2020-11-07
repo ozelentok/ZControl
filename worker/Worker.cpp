@@ -44,8 +44,14 @@ void Worker::_handle_commander_message(const Message &commander_msg) {
 		case CommanderMessageType::Read:
 			_transport.write(_file_handler.read(commander_msg));
 			break;
+		case CommanderMessageType::PRead:
+			_transport.write(_file_handler.pread(commander_msg));
+			break;
 		case CommanderMessageType::Write:
 			_transport.write(_file_handler.write(commander_msg));
+			break;
+		case CommanderMessageType::PWrite:
+			_transport.write(_file_handler.pwrite(commander_msg));
 			break;
 		case CommanderMessageType::OpenDir:
 			_transport.write(_dir_handler.opendir(commander_msg));
