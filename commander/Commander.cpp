@@ -6,7 +6,7 @@
 #include <sys/stat.h>
 
 Commander::Commander(TcpSocket &&connection)
-	: _transport(std::move(connection)), _command_next_id(0), _last_errno(0),
+	: _transport(std::move(connection)), _next_command_id(0), _last_errno(0),
 	_responses_reader(&Commander::_read_responses, this),
 	_connected(true) {
 }
@@ -52,8 +52,7 @@ Message Commander::_send_command(const Message &commander_msg) {
 }
 
 void Commander::disconnect() {
-	//TODO: Avoid _command_next_id race
-	auto commander_msg = Message(_command_next_id++, CommanderMessageType::Disconnect, std::vector<uint8_t>(0));
+	auto commander_msg = Message(_next_command_id++, CommanderMessageType::Disconnect, std::vector<uint8_t>(0));
 	_send_command(commander_msg);
 	_connected = false;
 }
@@ -62,7 +61,7 @@ bool Commander::getattr(const std::string &file_path, struct stat &file_info) {
 	BinarySerializer serializer;
 	serializer.serialize_str(file_path);
 
-	auto commander_msg = Message(_command_next_id++, CommanderMessageType::GetAtr, serializer.data());
+	auto commander_msg = Message(_next_command_id++, CommanderMessageType::GetAtr, serializer.data());
 	Message worker_msg = _send_command(commander_msg);
 	BinaryDeserializer deserializer(worker_msg.data);
 
@@ -87,7 +86,7 @@ bool Commander::access(const std::string &file_path, int32_t mode) {
 	serializer.serialize_str(file_path);
 	serializer.serialize_int32(mode);
 
-	auto commander_msg = Message(_command_next_id++, CommanderMessageType::Access, serializer.data());
+	auto commander_msg = Message(_next_command_id++, CommanderMessageType::Access, serializer.data());
 	Message worker_msg = _send_command(commander_msg);
 	BinaryDeserializer deserializer(worker_msg.data);
 
@@ -104,7 +103,7 @@ int32_t Commander::open(const std::string &file_path, int32_t flags, int32_t mod
 	serializer.serialize_int32(flags);
 	serializer.serialize_int32(mode);
 
-	auto commander_msg = Message(_command_next_id++, CommanderMessageType::Open, serializer.data());
+	auto commander_msg = Message(_next_command_id++, CommanderMessageType::Open, serializer.data());
 	Message worker_msg = _send_command(commander_msg);
 	BinaryDeserializer deserializer(worker_msg.data);
 
@@ -119,7 +118,7 @@ int32_t Commander::close(int32_t fd) {
 	BinarySerializer serializer;
 	serializer.serialize_int32(fd);
 
-	auto commander_msg = Message(_command_next_id++, CommanderMessageType::Close, serializer.data());
+	auto commander_msg = Message(_next_command_id++, CommanderMessageType::Close, serializer.data());
 	Message worker_msg = _send_command(commander_msg);
 	BinaryDeserializer deserializer(worker_msg.data);
 
@@ -135,7 +134,7 @@ int32_t Commander::read(int32_t fd, uint8_t *bytes, uint32_t size) {
 	serializer.serialize_int32(fd);
 	serializer.serialize_uint32(size);
 
-	auto commander_msg = Message(_command_next_id++, CommanderMessageType::Read, serializer.data());
+	auto commander_msg = Message(_next_command_id++, CommanderMessageType::Read, serializer.data());
 	Message worker_msg = _send_command(commander_msg);
 	BinaryDeserializer deserializer(worker_msg.data);
 
@@ -161,7 +160,7 @@ int32_t Commander::pread(int32_t fd, uint8_t *bytes, uint32_t size, uint64_t off
 	serializer.serialize_uint32(size);
 	serializer.serialize_int64(offset);
 
-	auto commander_msg = Message(_command_next_id++, CommanderMessageType::PRead, serializer.data());
+	auto commander_msg = Message(_next_command_id++, CommanderMessageType::PRead, serializer.data());
 	Message worker_msg = _send_command(commander_msg);
 	BinaryDeserializer deserializer(worker_msg.data);
 
@@ -190,7 +189,7 @@ int32_t Commander::write(int32_t fd, const uint8_t *bytes, uint32_t size) {
 		serializer.serialize_uint8(bytes[i]);
 	}
 
-	auto commander_msg = Message(_command_next_id++, CommanderMessageType::Write, serializer.data());
+	auto commander_msg = Message(_next_command_id++, CommanderMessageType::Write, serializer.data());
 	Message worker_msg = _send_command(commander_msg);
 	BinaryDeserializer deserializer(worker_msg.data);
 
@@ -211,7 +210,7 @@ int32_t Commander::pwrite(int32_t fd, const uint8_t *bytes, uint32_t size, uint6
 		serializer.serialize_uint8(bytes[i]);
 	}
 
-	auto commander_msg = Message(_command_next_id++, CommanderMessageType::PWrite, serializer.data());
+	auto commander_msg = Message(_next_command_id++, CommanderMessageType::PWrite, serializer.data());
 	Message worker_msg = _send_command(commander_msg);
 	BinaryDeserializer deserializer(worker_msg.data);
 
@@ -226,7 +225,7 @@ int32_t Commander::opendir(const std::string &dir_path) {
 	BinarySerializer serializer;
 	serializer.serialize_str(dir_path);
 
-	auto commander_msg = Message(_command_next_id++, CommanderMessageType::OpenDir, serializer.data());
+	auto commander_msg = Message(_next_command_id++, CommanderMessageType::OpenDir, serializer.data());
 	Message worker_msg = _send_command(commander_msg);
 	BinaryDeserializer deserializer(worker_msg.data);
 
@@ -241,7 +240,7 @@ int32_t Commander::closedir(int32_t fd) {
 	BinarySerializer serializer;
 	serializer.serialize_int32(fd);
 
-	auto commander_msg = Message(_command_next_id++, CommanderMessageType::CloseDir, serializer.data());
+	auto commander_msg = Message(_next_command_id++, CommanderMessageType::CloseDir, serializer.data());
 	Message worker_msg = _send_command(commander_msg);
 	BinaryDeserializer deserializer(worker_msg.data);
 
@@ -257,7 +256,7 @@ std::vector<DirEntry> Commander::readdir(int32_t fd, uint32_t entries) {
 	serializer.serialize_int32(fd);
 	serializer.serialize_uint32(entries);
 
-	auto commander_msg = Message(_command_next_id++, CommanderMessageType::ReadDir, serializer.data());
+	auto commander_msg = Message(_next_command_id++, CommanderMessageType::ReadDir, serializer.data());
 	Message worker_msg = _send_command(commander_msg);
 	BinaryDeserializer deserializer(worker_msg.data);
 

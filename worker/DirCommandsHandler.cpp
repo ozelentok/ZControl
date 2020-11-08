@@ -6,13 +6,15 @@ DirCommandsHandler::DirCommandsHandler() : _next_fd_id(0) {}
 
 DirCommandsHandler::~DirCommandsHandler() {
 	try {
+		std::lock_guard<std::mutex> lock(_fds_mx);
 		for (auto const &it : _fds) {
 			::closedir(it.second);
 		}
 	} catch (...) {}
 }
 
-DIR* DirCommandsHandler::_get_fd(int32_t fd_id) const {
+DIR* DirCommandsHandler::_get_fd(int32_t fd_id) {
+	std::lock_guard<std::mutex> lock(_fds_mx);
 	auto entry = _fds.find(fd_id);
 	if (entry == _fds.end()) {
 		//TODO Log invalid fd_id in error log
@@ -29,9 +31,8 @@ Message DirCommandsHandler::opendir(const Message& message) {
 	DIR *fd = ::opendir(dir_path.c_str());
 	int32_t fd_id = -1;
 	if (fd != nullptr) {
-		//TODO - use atomic counter
 		fd_id = _next_fd_id++;
-		//TODO - use lock
+		std::lock_guard<std::mutex> lock(_fds_mx);
 		_fds.emplace(fd_id, fd);
 	}
 
@@ -46,7 +47,10 @@ Message DirCommandsHandler::closedir(const Message& message) {
 	const auto fd_id = deserializer.deserialize_int32();
 
 	const int32_t value = ::closedir(_get_fd(fd_id));
-	_fds.erase(fd_id);
+	{
+		std::lock_guard<std::mutex> lock(_fds_mx);
+		_fds.erase(fd_id);
+	}
 
 	BinarySerializer serializer;
 	serializer.serialize_int32(value);

@@ -1,14 +1,17 @@
 #pragma once
 #include "MessageTransport.hpp"
 #include <map>
+#include <mutex>
+#include <atomic>
 #include <sys/types.h>
 #include <dirent.h>
 
 class DirCommandsHandler {
 	private:
 		std::map<int32_t, DIR*> _fds;
-		int32_t  _next_fd_id;
-		DIR* _get_fd(int32_t fd_id) const;
+		std::mutex _fds_mx;
+		std::atomic_uint32_t _next_fd_id;
+		DIR* _get_fd(int32_t fd_id);
 
 	public:
 		DirCommandsHandler();

@@ -18,7 +18,7 @@ void Worker::work() {
 			printf("Got message: id: %d, type: %d, data_length: %ld\n",
 						 commander_msg.id, commander_msg.type, commander_msg.data.size());
 			_thread_pool.submit(std::bind(&Worker::_handle_commander_message, this, std::move(commander_msg)));
-		} catch (const TransportClosed) {
+		} catch (const TransportClosed&) {
 			_should_disconnect = true;
 		} catch (...) {
 			_should_disconnect = true;

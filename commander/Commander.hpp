@@ -2,6 +2,7 @@
 #include "TcpSocket.hpp"
 #include "MessageTransport.hpp"
 #include "DirEntry.hpp"
+#include <atomic>
 #include <map>
 #include <future>
 #include <thread>
@@ -10,7 +11,7 @@
 class Commander {
 	private:
 		MessageTransport _transport;
-		uint32_t _command_next_id;
+		std::atomic_uint32_t _next_command_id;
 		int32_t _last_errno;
 		std::map<uint32_t, std::promise<Message>> _responses_promises;
 		std::thread _responses_reader;
