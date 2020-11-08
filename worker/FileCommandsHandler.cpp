@@ -47,6 +47,18 @@ Message FileCommandsHandler::getattr(const Message& message) {
 	return Message(message.id, WorkerMessageType::CommandResult, serializer.data());
 }
 
+Message FileCommandsHandler::access(const Message& message) {
+	BinaryDeserializer deserializer(message.data);
+	const auto file_path = deserializer.deserialize_str();
+	const auto mode = deserializer.deserialize_int32();
+
+	const int result = ::access(file_path.c_str(), mode);
+	BinarySerializer serializer;
+	serializer.serialize_uint8(result == 0 ? 1 : 0);
+	serializer.serialize_int32(errno);
+	return Message(message.id, WorkerMessageType::CommandResult, serializer.data());
+}
+
 Message FileCommandsHandler::open(const Message& message) {
 	BinaryDeserializer deserializer(message.data);
 	const auto file_path = deserializer.deserialize_str();

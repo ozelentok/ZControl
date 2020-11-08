@@ -26,6 +26,7 @@ class Commander {
 		int32_t last_errno() const;
 		void disconnect();
 		bool getattr(const std::string &file_path, struct stat &file_info);
+		bool access(const std::string &file_path, int32_t mode);
 		int32_t open(const std::string &file_path, int32_t flags, int32_t mode=DEFFILEMODE);
 		int32_t close(int32_t fd);
 		int32_t read(int32_t fd, uint8_t *bytes, uint32_t size);

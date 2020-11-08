@@ -14,6 +14,7 @@ class FileCommandsHandler {
 		FileCommandsHandler(FileCommandsHandler&&) = delete;
 		~FileCommandsHandler();
 		Message getattr(const Message& message);
+		Message access(const Message& message);
 		Message open(const Message& message);
 		Message close(const Message& message);
 		Message read(const Message& message);

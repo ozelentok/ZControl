@@ -35,6 +35,9 @@ void Worker::_handle_commander_message(const Message &commander_msg) {
 		case CommanderMessageType::GetAtr:
 			_transport.write(_file_handler.getattr(commander_msg));
 			break;
+		case CommanderMessageType::Access:
+			_transport.write(_file_handler.access(commander_msg));
+			break;
 		case CommanderMessageType::Open:
 			_transport.write(_file_handler.open(commander_msg));
 			break;

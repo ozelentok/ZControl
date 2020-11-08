@@ -51,7 +51,6 @@ Message Commander::_send_command(const Message &commander_msg) {
 	return worker_msg;
 }
 
-
 void Commander::disconnect() {
 	//TODO: Avoid _command_next_id race
 	auto commander_msg = Message(_command_next_id++, CommanderMessageType::Disconnect, std::vector<uint8_t>(0));
@@ -79,6 +78,22 @@ bool Commander::getattr(const std::string &file_path, struct stat &file_info) {
 		file_info.st_atim.tv_sec = deserializer.deserialize_int64();
 		file_info.st_mtim.tv_sec = deserializer.deserialize_int64();
 		file_info.st_ctim.tv_sec = deserializer.deserialize_int64();
+	}
+	return value;
+}
+
+bool Commander::access(const std::string &file_path, int32_t mode) {
+	BinarySerializer serializer;
+	serializer.serialize_str(file_path);
+	serializer.serialize_int32(mode);
+
+	auto commander_msg = Message(_command_next_id++, CommanderMessageType::Access, serializer.data());
+	Message worker_msg = _send_command(commander_msg);
+	BinaryDeserializer deserializer(worker_msg.data);
+
+	auto value = deserializer.deserialize_uint8();
+	if (!value) {
+		_last_errno = deserializer.deserialize_int32();
 	}
 	return value;
 }

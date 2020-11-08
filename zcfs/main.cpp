@@ -44,6 +44,14 @@ static int getattr_callback(const char *path, struct stat *stbuf) {
 	// }
 }
 
+static int access_callback(const char *path, int mode) {
+	const bool result = commander->access(path, mode);
+	if (!result) {
+		return -commander->last_errno();
+	}
+	return 0;
+}
+
 static int readdir_callback(const char *path, void *buf, fuse_fill_dir_t filler,
 														off_t offset, struct fuse_file_info *fi) {
 	(void) offset;
@@ -137,6 +145,7 @@ static struct fuse_operations fuse_example_operations = {
 	.write = write_callback,
 	.readdir = readdir_callback,
 	.init = init_callback,
+	.access = access_callback,
 	.create = create_callback,
 };
 
