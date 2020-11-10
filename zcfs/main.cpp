@@ -32,7 +32,7 @@ static void* init_callback(struct fuse_conn_info *conn) {
 static int getattr_callback(const char *path, struct stat *stbuf) {
 	memset(stbuf, 0, sizeof(struct stat));
 
-	const bool result = commander->getattr(path, *stbuf);
+	auto result = commander->getattr(path, *stbuf);
 	if (!result) {
 		return -commander->last_errno();
 	}
@@ -45,8 +45,25 @@ static int getattr_callback(const char *path, struct stat *stbuf) {
 }
 
 static int access_callback(const char *path, int mode) {
-	const bool result = commander->access(path, mode);
+	auto result = commander->access(path, mode);
 	if (!result) {
+		return -commander->last_errno();
+	}
+	return 0;
+}
+
+static int opendir_callback(const char *path, struct fuse_file_info *fi) {
+	auto result = commander->opendir(path);
+	if (result == -1) {
+		return -commander->last_errno();
+	}
+	fi->fh = result;
+	return 0;
+}
+
+static int releasedir_callback(const char *path, struct fuse_file_info *fi) {
+	auto result = commander->closedir(fi->fh);
+	if (result == -1) {
 		return -commander->last_errno();
 	}
 	return 0;
@@ -54,14 +71,7 @@ static int access_callback(const char *path, int mode) {
 
 static int readdir_callback(const char *path, void *buf, fuse_fill_dir_t filler,
 														off_t offset, struct fuse_file_info *fi) {
-	(void) offset;
-	(void) fi;
-
-	auto dfd = commander->opendir(path);
-	if (dfd == -1) {
-		return -commander->last_errno();
-	}
-	auto dirs = commander->readdir(dfd, 40);
+	auto dirs = commander->readdir(fi->fh, 40);
 	if (commander->last_errno() != 0) {
 		return -commander->last_errno();
 	}
@@ -74,68 +84,51 @@ static int readdir_callback(const char *path, void *buf, fuse_fill_dir_t filler,
 			break;
 		}
 	}
-	commander->closedir(dfd);
 	return 0;
 }
 
 static int open_callback(const char *path, struct fuse_file_info *fi) {
-	auto val = commander->open(path, fi->flags);
-	if (val == -1) {
+	auto result = commander->open(path, fi->flags);
+	if (result == -1) {
 		return -commander->last_errno();
 	}
-	fi->fh = val;
+	fi->fh = result;
 	return 0;
 }
 
 static int create_callback(const char *path, mode_t mode, struct fuse_file_info *fi) {
-	auto val = commander->open(path, fi->flags, mode);
-	if (val == -1) {
+	auto result = commander->open(path, fi->flags, mode);
+	if (result == -1) {
 		return -commander->last_errno();
 	}
-	fi->fh = val;
+	fi->fh = result;
+	return 0;
+}
+
+static int release_callback(const char *path, struct fuse_file_info *fi) {
+	auto result = commander->close(fi->fh);
+	if (result == -1) {
+		return -commander->last_errno();
+	}
 	return 0;
 }
 
 static int read_callback(const char *path, char *buf, size_t size,
 												off_t offset, struct fuse_file_info *fi) {
-	int32_t fd = -1;
-	if (fi == nullptr) {
-		fd = commander->open(path, O_RDONLY);
-	} else {
-		fd = fi->fh;
-	}
-
-	auto val = commander->pread(fd, reinterpret_cast<uint8_t*>(buf), size, offset);
-	if (val == -1) {
+	auto result = commander->pread(fi->fh, reinterpret_cast<uint8_t*>(buf), size, offset);
+	if (result == -1) {
 		return -commander->last_errno();
 	}
-
-	if (fi == nullptr) {
-		commander->close(fd);
-	}
-
-	return val;
+	return result;
 }
 
 static int write_callback(const char *path, const char *buf, size_t size,
 												off_t offset, struct fuse_file_info *fi) {
-	int32_t fd = -1;
-	if (fi == nullptr) {
-		fd = commander->open(path, O_WRONLY);
-	} else {
-		fd = fi->fh;
-	}
-
-	auto val = commander->pwrite(fd, reinterpret_cast<const uint8_t*>(buf), size, offset);
-	if (val == -1) {
+	auto result = commander->pwrite(fi->fh, reinterpret_cast<const uint8_t*>(buf), size, offset);
+	if (result == -1) {
 		return -commander->last_errno();
 	}
-
-	if (fi == nullptr) {
-		commander->close(fd);
-	}
-
-	return val;
+	return result;
 }
 
 static struct fuse_operations fuse_example_operations = {
@@ -143,15 +136,15 @@ static struct fuse_operations fuse_example_operations = {
 	.open = open_callback,
 	.read = read_callback,
 	.write = write_callback,
+	.release = release_callback,
+	.opendir = opendir_callback,
 	.readdir = readdir_callback,
+	.releasedir = releasedir_callback,
 	.init = init_callback,
 	.access = access_callback,
 	.create = create_callback,
 };
 
-int main(int argc, char *argv[])
-{
-	pid_t pid = getpid();
-	printf("MAIN PID: %d\n", pid);
+int main(int argc, char *argv[]) {
 	return fuse_main(argc, argv, &fuse_example_operations, NULL);
 }
