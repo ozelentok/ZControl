@@ -8,7 +8,7 @@
 enum CommanderMessageType: std::uint8_t
 {
 	Disconnect = 0,
-	GetAtr,
+	GetAttr,
 	Access,
 	Open,
 	Close,

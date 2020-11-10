@@ -20,6 +20,10 @@ Commander::~Commander() {
 	}
 }
 
+bool Commander::is_connected() const {
+	return _connected;
+}
+
 int32_t Commander::last_errno() const {
 	return _last_errno;
 }
@@ -28,11 +32,13 @@ void Commander::_read_responses() {
 	while (_connected) {
 		try {
 			auto worker_msg = _transport.read();
+			std::lock_guard<std::mutex> lock(_promises_mx);
 			auto promise = std::move(_responses_promises.at(worker_msg.id));
 			promise.set_value(worker_msg);
 			_responses_promises.erase(worker_msg.id);
 		} catch (...) {
 			_connected = false;
+			std::lock_guard<std::mutex> lock(_promises_mx);
 			for (auto it = _responses_promises.begin(); it != _responses_promises.end(); ++it) {
 				it->second.set_exception(std::current_exception());
 			}
@@ -44,14 +50,21 @@ Message Commander::_send_command(const Message &commander_msg) {
 	_transport.write(commander_msg);
 	std::promise<Message> promise;
 	auto future = promise.get_future();
-
-	_responses_promises[commander_msg.id] = std::move(promise);
+	{
+		std::lock_guard<std::mutex> lock(_promises_mx);
+		if (!_connected) {
+			throw std::runtime_error("Worker has disconnected");
+		}
+		_responses_promises[commander_msg.id] = std::move(promise);
+	}
 	Message worker_msg = future.get();
-
 	return worker_msg;
 }
 
 void Commander::disconnect() {
+	if (!_connected) {
+		return;
+	}
 	auto commander_msg = Message(_next_command_id++, CommanderMessageType::Disconnect, std::vector<uint8_t>(0));
 	_send_command(commander_msg);
 	_connected = false;
@@ -61,7 +74,7 @@ bool Commander::getattr(const std::string &file_path, struct stat &file_info) {
 	BinarySerializer serializer;
 	serializer.serialize_str(file_path);
 
-	auto commander_msg = Message(_next_command_id++, CommanderMessageType::GetAtr, serializer.data());
+	auto commander_msg = Message(_next_command_id++, CommanderMessageType::GetAttr, serializer.data());
 	Message worker_msg = _send_command(commander_msg);
 	BinaryDeserializer deserializer(worker_msg.data);
 

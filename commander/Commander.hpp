@@ -14,6 +14,7 @@ class Commander {
 		std::atomic_uint32_t _next_command_id;
 		int32_t _last_errno;
 		std::map<uint32_t, std::promise<Message>> _responses_promises;
+		std::mutex _promises_mx;
 		std::thread _responses_reader;
 		bool _connected;
 
@@ -23,7 +24,9 @@ class Commander {
 	public:
 		Commander(TcpSocket &&connection);
 		Commander(const Commander&) = delete;
+		Commander(Commander&&) = delete;
 		~Commander();
+		bool is_connected() const;
 		int32_t last_errno() const;
 		void disconnect();
 		bool getattr(const std::string &file_path, struct stat &file_info);

@@ -1,4 +1,5 @@
 add_executable(zcfs
+	Server.cpp
 	main.cpp
 )
 find_package(FUSE REQUIRED)

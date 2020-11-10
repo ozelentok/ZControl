@@ -32,7 +32,7 @@ void Worker::_handle_commander_message(const Message &commander_msg) {
 		case CommanderMessageType::Disconnect:
 			_transport.write(_disconnect(commander_msg));
 			break;
-		case CommanderMessageType::GetAtr:
+		case CommanderMessageType::GetAttr:
 			_transport.write(_file_handler.getattr(commander_msg));
 			break;
 		case CommanderMessageType::Access:

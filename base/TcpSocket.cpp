@@ -5,6 +5,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
+#include <arpa/inet.h>
 
 TcpSocket::TcpSocket() {
 	_socket = socket(AF_INET, SOCK_STREAM, 0);
@@ -69,12 +70,14 @@ void TcpSocket::close() {
 	}
 }
 
-TcpSocket TcpSocket::accept() {
-	int socket = ::accept(_socket, nullptr, nullptr);
+std::tuple<TcpSocket, uint32_t, uint16_t> TcpSocket::accept() {
+	struct sockaddr_in client_address;
+	socklen_t client_address_size = sizeof(client_address);
+	int socket = ::accept(_socket, reinterpret_cast<struct sockaddr *>(&client_address), &client_address_size);
 	if (socket == -1) {
 		throw std::system_error(errno, std::system_category(), "Failed to accept");
 	}
-	return TcpSocket(socket);
+	return std::make_tuple(TcpSocket(socket), client_address.sin_addr.s_addr, client_address.sin_port);
 }
 
 size_t TcpSocket::recv(uint8_t *bytes, size_t size) {
@@ -94,4 +97,10 @@ void TcpSocket::send(const uint8_t *bytes, size_t size) {
 	if (result <= -1) {
 		throw std::system_error(errno, std::system_category(), "Failed to send");
 	}
+}
+
+std::string TcpSocket::format_connection(uint32_t ip, uint16_t port) {
+	struct in_addr addr;
+	addr.s_addr = ip;
+	return std::string(inet_ntoa(addr)) + ':' + std::to_string(htons(port));
 }
