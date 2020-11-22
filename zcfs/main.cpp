@@ -49,9 +49,9 @@ static int getattr_callback(const char *path, struct stat *stbuf) {
 		if (commander == nullptr) {
 			return -ENOENT;
 		}
-		auto result = commander->getattr(remote_path, *stbuf);
+		auto [result, worker_errno] = commander->getattr(remote_path, *stbuf);
 		if (!result) {
-			return -commander->last_errno();
+			return -worker_errno;
 		}
 		return 0;
 	} catch (...) {
@@ -69,9 +69,9 @@ static int access_callback(const char *path, int mode) {
 	if (commander == nullptr) {
 		return -ENOENT;
 	}
-	auto result = commander->access(remote_path, mode);
+	auto [result, worker_errno] = commander->access(remote_path, mode);
 	if (!result) {
-		return -commander->last_errno();
+		return -worker_errno;
 	}
 	return 0;
 }
@@ -87,9 +87,9 @@ static int opendir_callback(const char *path, struct fuse_file_info *fi) {
 	if (commander == nullptr) {
 		return -ENOENT;
 	}
-	auto result = commander->opendir(remote_path);
+	auto [result, worker_errno] = commander->opendir(remote_path);
 	if (result == -1) {
-		return -commander->last_errno();
+		return -worker_errno;
 	}
 	fi->fh = result;
 	return 0;
@@ -105,9 +105,9 @@ static int releasedir_callback(const char *path, struct fuse_file_info *fi) {
 	if (commander == nullptr) {
 		return -ENOENT;
 	}
-	auto result = commander->closedir(fi->fh);
+	auto [result, worker_errno] = commander->closedir(fi->fh);
 	if (result == -1) {
-		return -commander->last_errno();
+		return -worker_errno;
 	}
 	return 0;
 }
@@ -132,9 +132,9 @@ static int readdir_callback(const char *path, void *buf, fuse_fill_dir_t filler,
 	if (commander == nullptr) {
 		return -EIO;
 	}
-	auto dirs = commander->readdir(fi->fh, 40);
-	if (commander->last_errno() != 0) {
-		return -commander->last_errno();
+	auto [dirs, worker_errno] = commander->readdir(fi->fh, 40);
+	if (worker_errno != 0) {
+		return -worker_errno;
 	}
 
 	for (const DirEntry& e : dirs) {
@@ -158,9 +158,9 @@ static int open_callback(const char *path, struct fuse_file_info *fi) {
 	if (commander == nullptr) {
 		return -ENOENT;
 	}
-	auto result = commander->open(remote_path, fi->flags);
+	auto [result, worker_errno] = commander->open(remote_path, fi->flags);
 	if (result == -1) {
-		return -commander->last_errno();
+		return -worker_errno;
 	}
 	fi->fh = result;
 	return 0;
@@ -176,9 +176,9 @@ static int create_callback(const char *path, mode_t mode, struct fuse_file_info 
 	if (commander == nullptr) {
 		return -ENOENT;
 	}
-	auto result = commander->open(remote_path, fi->flags, mode);
+	auto [result, worker_errno] = commander->open(remote_path, fi->flags, mode);
 	if (result == -1) {
-		return -commander->last_errno();
+		return -worker_errno;
 	}
 	fi->fh = result;
 	return 0;
@@ -190,9 +190,9 @@ static int release_callback(const char *path, struct fuse_file_info *fi) {
 	if (commander == nullptr) {
 		return -ENOENT;
 	}
-	auto result = commander->close(fi->fh);
+	auto [result, worker_errno] = commander->close(fi->fh);
 	if (result == -1) {
-		return -commander->last_errno();
+		return -worker_errno;
 	}
 	return 0;
 }
@@ -204,9 +204,9 @@ static int read_callback(const char *path, char *buf, size_t size,
 	if (commander == nullptr) {
 		return -EIO;
 	}
-	auto result = commander->pread(fi->fh, reinterpret_cast<uint8_t*>(buf), size, offset);
+	auto [result, worker_errno] = commander->pread(fi->fh, reinterpret_cast<uint8_t*>(buf), size, offset);
 	if (result == -1) {
-		return -commander->last_errno();
+		return -worker_errno;
 	}
 	return result;
 }
@@ -218,9 +218,9 @@ static int write_callback(const char *path, const char *buf, size_t size,
 	if (commander == nullptr) {
 		return -EIO;
 	}
-	auto result = commander->pwrite(fi->fh, reinterpret_cast<const uint8_t*>(buf), size, offset);
+	auto [result, worker_errno] = commander->pwrite(fi->fh, reinterpret_cast<const uint8_t*>(buf), size, offset);
 	if (result == -1) {
-		return -commander->last_errno();
+		return -worker_errno;
 	}
 	return result;
 }

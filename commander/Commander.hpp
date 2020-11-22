@@ -12,7 +12,6 @@ class Commander {
 	private:
 		MessageTransport _transport;
 		std::atomic_uint32_t _next_command_id;
-		int32_t _last_errno;
 		std::map<uint32_t, std::promise<Message>> _responses_promises;
 		std::mutex _promises_mx;
 		std::thread _responses_reader;
@@ -27,17 +26,16 @@ class Commander {
 		Commander(Commander&&) = delete;
 		~Commander();
 		bool is_connected() const;
-		int32_t last_errno() const;
 		void disconnect();
-		bool getattr(const std::string &file_path, struct stat &file_info);
-		bool access(const std::string &file_path, int32_t mode);
-		int32_t open(const std::string &file_path, int32_t flags, int32_t mode=DEFFILEMODE);
-		int32_t close(int32_t fd);
-		int32_t read(int32_t fd, uint8_t *bytes, uint32_t size);
-		int32_t pread(int32_t fd, uint8_t *bytes, uint32_t size, uint64_t offset);
-		int32_t write(int32_t fd, const uint8_t *bytes, uint32_t size);
-		int32_t pwrite(int32_t fd, const uint8_t *bytes, uint32_t size, uint64_t offset);
-		int32_t opendir(const std::string &dir_path);
-		int32_t closedir(int32_t fd);
-		std::vector<DirEntry> readdir(int32_t fd, uint32_t entries);
+		std::pair<bool, int32_t> getattr(const std::string &file_path, struct stat &file_info);
+		std::pair<bool, int32_t> access(const std::string &file_path, int32_t mode);
+		std::pair<int32_t, int32_t> open(const std::string &file_path, int32_t flags, int32_t mode=DEFFILEMODE);
+		std::pair<int32_t, int32_t> close(int32_t fd);
+		std::pair<int32_t, int32_t> read(int32_t fd, uint8_t *bytes, uint32_t size);
+		std::pair<int32_t, int32_t> pread(int32_t fd, uint8_t *bytes, uint32_t size, uint64_t offset);
+		std::pair<int32_t, int32_t> write(int32_t fd, const uint8_t *bytes, uint32_t size);
+		std::pair<int32_t, int32_t> pwrite(int32_t fd, const uint8_t *bytes, uint32_t size, uint64_t offset);
+		std::pair<int32_t, int32_t> opendir(const std::string &dir_path);
+		std::pair<int32_t, int32_t> closedir(int32_t fd);
+		std::pair<std::vector<DirEntry>, int32_t> readdir(int32_t fd, uint32_t entries);
 };
