@@ -13,8 +13,10 @@ class FileCommandsHandler {
 
 	public:
 		FileCommandsHandler();
-		FileCommandsHandler(const FileCommandsHandler&) = delete;
-		FileCommandsHandler(FileCommandsHandler&&) = delete;
+		FileCommandsHandler(const FileCommandsHandler &other) = delete;
+		FileCommandsHandler(FileCommandsHandler &&other) = delete;
+		FileCommandsHandler& operator=(const FileCommandsHandler &other) = delete;
+		FileCommandsHandler& operator=(FileCommandsHandler &&other) = delete;
 		~FileCommandsHandler();
 		Message getattr(const Message& message);
 		Message access(const Message& message);

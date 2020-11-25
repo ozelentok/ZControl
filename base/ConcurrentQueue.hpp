@@ -18,15 +18,18 @@ class ConcurrentQueue {
 
 	public:
 		ConcurrentQueue() : _shutdown(false) {};
-		ConcurrentQueue(const ConcurrentQueue&) = delete;
-		ConcurrentQueue(ConcurrentQueue&&) = delete;
+		ConcurrentQueue(const ConcurrentQueue &other) = delete;
+		ConcurrentQueue(ConcurrentQueue &&other) = delete;
+		ConcurrentQueue& operator=(const ConcurrentQueue &other) = delete;
+		ConcurrentQueue& operator=(ConcurrentQueue &&other) = delete;
+		~ConcurrentQueue() = default;
 
 		bool empty() {
 			std::lock_guard<std::mutex> lock(_mx);
 			return _queue.empty();
 		}
 
-		void push(const T&& value) {
+		void push(const T &&value) {
 			std::lock_guard<std::mutex> lock(_mx);
 			_queue.push(value);
 			_cv.notify_one();

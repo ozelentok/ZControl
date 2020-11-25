@@ -10,8 +10,10 @@ class BinarySerializer {
 
 	public:
 		BinarySerializer();
-		BinarySerializer(const BinarySerializer&) = delete;
-		BinarySerializer(BinarySerializer&&) = delete;
+		BinarySerializer(const BinarySerializer &other) = delete;
+		BinarySerializer(BinarySerializer &&other) = delete;
+		BinarySerializer& operator=(const BinarySerializer &other) = delete;
+		BinarySerializer& operator=(BinarySerializer &&other) = delete;
 		~BinarySerializer() = default;
 		void serialize_uint8(uint8_t value);
 		void serialize_uint32(uint32_t value);

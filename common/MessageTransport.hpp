@@ -32,7 +32,7 @@ class Message {
 		uint8_t type;
 		std::vector<uint8_t> data;
 
-		Message(uint32_t id, uint8_t type, const std::vector<uint8_t>&& data);
+		Message(uint32_t id, uint8_t type, std::vector<uint8_t> &&data);
 };
 
 
@@ -51,8 +51,10 @@ class MessageTransport {
 	public:
 		MessageTransport(const std::string &host, uint16_t port);
 		MessageTransport(TcpSocket &&socket);
-		MessageTransport(const MessageTransport&) = delete;
-		MessageTransport(MessageTransport&&) = delete;
+		MessageTransport(const MessageTransport &other) = delete;
+		MessageTransport(MessageTransport &&other) = delete;
+		MessageTransport& operator=(const MessageTransport &other) = delete;
+		MessageTransport& operator=(MessageTransport &&other) = delete;
 		~MessageTransport() = default;
 		Message read();
 		void write(const Message &message);

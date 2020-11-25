@@ -2,7 +2,7 @@
 #include "BinarySerializer.hpp"
 #include "BinaryDeserializer.hpp"
 
-Message::Message(uint32_t id, uint8_t type, const std::vector<uint8_t>&& data) :
+Message::Message(uint32_t id, uint8_t type, std::vector<uint8_t> &&data) :
 	id(id), type(type), data(data) {}
 
 MessageTransport::MessageTransport(const std::string &host, uint16_t port) {

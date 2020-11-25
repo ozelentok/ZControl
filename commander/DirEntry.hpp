@@ -10,9 +10,6 @@ class DirEntry {
 
 	public:
 		DirEntry(uint32_t inode, uint8_t type, std::string &&name);
-		DirEntry(const DirEntry &other) = default;
-		DirEntry(DirEntry &&other) = default;
-		~DirEntry() = default;
 		uint32_t inode() const;
 		uint8_t type() const;
 		const std::string &name() const;

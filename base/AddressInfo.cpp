@@ -9,6 +9,10 @@ AddressInfo::AddressInfo(const std::string &host, uint16_t port) {
 	}
 }
 
+AddressInfo::AddressInfo(AddressInfo &&other) : _info(nullptr) {
+	std::swap(_info, other._info);
+}
+
 const addrinfo* AddressInfo::get() const {
 	return _info;
 }

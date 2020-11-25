@@ -12,8 +12,10 @@ class BinaryDeserializer {
 
 	public:
 		BinaryDeserializer(const std::vector<uint8_t> &serialized);
-		BinaryDeserializer(const BinaryDeserializer&) = delete;
-		BinaryDeserializer(BinaryDeserializer&&) = delete;
+		BinaryDeserializer(const BinaryDeserializer &other) = delete;
+		BinaryDeserializer(BinaryDeserializer &&other) = delete;
+		BinaryDeserializer& operator=(const BinaryDeserializer &other) = delete;
+		BinaryDeserializer& operator=(BinaryDeserializer &&other) = delete;
 		~BinaryDeserializer() = default;
 		uint32_t bytes_available() const;
 		uint8_t deserialize_uint8();

@@ -18,7 +18,10 @@ class Worker {
 
 	public:
 		Worker(const std::string &host, uint16_t port);
-		Worker(const Worker&) = delete;
-		Worker(Worker&&) = delete;
+		Worker(const Worker &other) = delete;
+		Worker(Worker &&other) = delete;
+		Worker& operator=(const Worker &other) = delete;
+		Worker& operator=(Worker &&other) = delete;
+		~Worker() = default;
 		void work();
 };

@@ -15,8 +15,10 @@ class DirCommandsHandler {
 
 	public:
 		DirCommandsHandler();
-		DirCommandsHandler(const DirCommandsHandler&) = delete;
-		DirCommandsHandler(DirCommandsHandler&&) = delete;
+		DirCommandsHandler(const DirCommandsHandler &other) = delete;
+		DirCommandsHandler(DirCommandsHandler &&other) = delete;
+		DirCommandsHandler& operator=(const DirCommandsHandler &other) = delete;
+		DirCommandsHandler& operator=(DirCommandsHandler &&other) = delete;
 		~DirCommandsHandler();
 		Message opendir(const Message& message);
 		Message readdir(const Message& message);

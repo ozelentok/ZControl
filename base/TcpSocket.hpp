@@ -11,8 +11,10 @@ class TcpSocket {
 	public:
 		TcpSocket();
 		TcpSocket(int socket);
-		TcpSocket(const TcpSocket&) = delete;
-		TcpSocket(TcpSocket&&);
+		TcpSocket(const TcpSocket &other) = delete;
+		TcpSocket(TcpSocket &&other);
+		TcpSocket& operator=(const TcpSocket &other) = delete;
+		TcpSocket& operator=(TcpSocket &&other) = delete;
 		~TcpSocket();
 		void connect(const std::string &host, uint16_t port);
 		void bind(const std::string &host, uint16_t port);

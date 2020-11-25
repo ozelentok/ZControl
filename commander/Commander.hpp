@@ -17,13 +17,15 @@ class Commander {
 		std::thread _responses_reader;
 		bool _connected;
 
-		Message _send_command(const Message &);
+		Message _send_command(const Message &commander_msg);
 		void _read_responses();
 
 	public:
 		Commander(TcpSocket &&connection);
-		Commander(const Commander&) = delete;
-		Commander(Commander&&) = delete;
+		Commander(const Commander &other) = delete;
+		Commander(Commander &&other) = delete;
+		Commander& operator=(const Commander &other) = delete;
+		Commander& operator=(Commander &&other) = delete;
 		~Commander();
 		bool is_connected() const;
 		void disconnect();
