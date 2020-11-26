@@ -6,6 +6,7 @@
 #include <cstring>
 #include <fcntl.h>
 #include <unistd.h>
+#include <sys/vfs.h>
 #define FUSE_USE_VERSION 30
 #include <fuse.h>
 
@@ -36,7 +37,7 @@ static std::pair<std::string, std::string> split_path(const char *path) {
 }
 
 static int getattr_callback(const char *path, struct stat *stbuf) {
-	memset(stbuf, 0, sizeof(struct stat));
+	memset(stbuf, 0, sizeof(*stbuf));
 	try {
 		if (strcmp(path, "/") == 0) {
 			stbuf->st_mode = S_IFDIR | 0755;
@@ -201,6 +202,26 @@ static int write_callback(const char *path, const char *buf, size_t size,
 	return result;
 }
 
+static int statfs_callback(const char *path, struct statvfs *stbuf) {
+	memset(stbuf, 0, sizeof(*stbuf));
+	if (strcmp(path, "/") == 0) {
+		stbuf->f_flag = ST_NOATIME | ST_NODIRATIME | ST_NOSUID;
+		return 0;
+	}
+
+	auto [client, remote_path] = split_path(path);
+	auto commander = server->get_commander(client);
+	if (commander == nullptr) {
+		return -ENOENT;
+	}
+	auto [result, worker_errno] = commander->statvfs(remote_path, stbuf);
+	if (!result) {
+		return -worker_errno;
+	}
+	stbuf->f_flag |= ST_NOATIME | ST_NODIRATIME | ST_NOSUID;
+	return 0;
+}
+
 static int release_callback(const char *path, struct fuse_file_info *fi) {
 	auto [client, remote_path] = split_path(path);
 	auto commander = server->get_commander(client);
@@ -347,6 +368,7 @@ static struct fuse_operations fuse_example_operations = {
 	.open = open_callback,
 	.read = read_callback,
 	.write = write_callback,
+	.statfs = statfs_callback,
 	.release = release_callback,
 	.opendir = opendir_callback,
 	.readdir = readdir_callback,

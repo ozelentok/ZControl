@@ -187,6 +187,30 @@ std::pair<bool, int32_t> Commander::utimens(const std::string &file_path, const 
 	return std::make_pair(value, worker_errno);
 }
 
+std::pair<bool, int32_t> Commander::statvfs(const std::string &file_path, struct statvfs *fs_info) {
+	BinarySerializer serializer;
+	serializer.serialize_str(file_path);
+
+	auto commander_msg = Message(_next_command_id++, CommanderMessageType::StatFileSystem, serializer.data());
+	Message worker_msg = _send_command(commander_msg);
+	BinaryDeserializer deserializer(worker_msg.data);
+
+	auto value = deserializer.deserialize_uint8();
+	auto worker_errno = deserializer.deserialize_int32();
+	fs_info->f_bsize = deserializer.deserialize_uint32();
+	fs_info->f_frsize = deserializer.deserialize_uint32();
+	fs_info->f_blocks = deserializer.deserialize_uint32();
+	fs_info->f_bfree = deserializer.deserialize_uint32();
+	fs_info->f_bavail = deserializer.deserialize_uint32();
+	fs_info->f_files = deserializer.deserialize_uint32();
+	fs_info->f_ffree = deserializer.deserialize_uint32();
+	fs_info->f_favail = deserializer.deserialize_uint32();
+	fs_info->f_fsid = deserializer.deserialize_uint32();
+	fs_info->f_flag = deserializer.deserialize_uint32();
+	fs_info->f_namemax = deserializer.deserialize_uint32();
+	return std::make_pair(value, worker_errno);
+}
+
 std::pair<int32_t, int32_t> Commander::open(const std::string &file_path, int32_t flags, int32_t mode) {
 	BinarySerializer serializer;
 	serializer.serialize_str(file_path);

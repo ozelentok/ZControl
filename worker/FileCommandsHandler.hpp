@@ -26,6 +26,7 @@ class FileCommandsHandler {
 		Message chmod(const Message& message);
 		Message chown(const Message& message);
 		Message utimens(const Message& message);
+		Message statvfs(const Message& message);
 		Message open(const Message& message);
 		Message close(const Message& message);
 		Message read(const Message& message);

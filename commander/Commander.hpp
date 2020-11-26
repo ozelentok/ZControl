@@ -7,6 +7,7 @@
 #include <future>
 #include <thread>
 #include <sys/stat.h>
+#include <sys/statvfs.h>
 
 class Commander {
 	private:
@@ -37,6 +38,7 @@ class Commander {
 		std::pair<bool, int32_t> chmod(const std::string &file_path, int32_t mode);
 		std::pair<bool, int32_t> chown(const std::string &file_path, int32_t owner, int32_t group);
 		std::pair<bool, int32_t> utimens(const std::string &file_path, const struct timespec times[2]);
+		std::pair<bool, int32_t> statvfs(const std::string &file_path, struct statvfs *fs_info);
 		std::pair<int32_t, int32_t> open(const std::string &file_path, int32_t flags, int32_t mode=DEFFILEMODE);
 		std::pair<bool, int32_t> close(int32_t fd);
 		std::pair<int32_t, int32_t> read(int32_t fd, uint8_t *bytes, uint32_t size);

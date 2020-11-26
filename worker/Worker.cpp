@@ -55,6 +55,9 @@ void Worker::_handle_commander_message(const Message &commander_msg) {
 		case CommanderMessageType::SetTimes:
 			_transport.write(_file_handler.utimens(commander_msg));
 			break;
+		case CommanderMessageType::StatFileSystem:
+			_transport.write(_file_handler.statvfs(commander_msg));
+			break;
 		case CommanderMessageType::Open:
 			_transport.write(_file_handler.open(commander_msg));
 			break;

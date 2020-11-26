@@ -16,6 +16,7 @@ enum CommanderMessageType: std::uint8_t
 	ChangeMode,
 	ChangeOwner,
 	SetTimes,
+	StatFileSystem,
 	Open,
 	Close,
 	Read,

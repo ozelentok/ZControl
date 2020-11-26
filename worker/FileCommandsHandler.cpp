@@ -4,6 +4,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/time.h>
+#include <sys/statvfs.h>
 #include <fcntl.h>
 #include <unistd.h>
 
@@ -143,6 +144,30 @@ Message FileCommandsHandler::utimens(const Message& message) {
 	BinarySerializer serializer;
 	serializer.serialize_uint8(value == 0 ? 1 : 0);
 	serializer.serialize_int32(errno);
+	return Message(message.id, WorkerMessageType::CommandResult, serializer.data());
+}
+
+Message FileCommandsHandler::statvfs(const Message& message) {
+	BinaryDeserializer deserializer(message.data);
+	const auto file_path = deserializer.deserialize_str();
+	struct statvfs stbuf;
+
+	const int value = ::statvfs(file_path.c_str(), &stbuf);
+
+	BinarySerializer serializer;
+	serializer.serialize_uint8(value == 0 ? 1 : 0);
+	serializer.serialize_int32(errno);
+	serializer.serialize_uint32(stbuf.f_bsize);
+	serializer.serialize_uint32(stbuf.f_frsize);
+	serializer.serialize_uint32(stbuf.f_blocks);
+	serializer.serialize_uint32(stbuf.f_bfree);
+	serializer.serialize_uint32(stbuf.f_bavail);
+	serializer.serialize_uint32(stbuf.f_files);
+	serializer.serialize_uint32(stbuf.f_ffree);
+	serializer.serialize_uint32(stbuf.f_favail);
+	serializer.serialize_uint32(stbuf.f_fsid);
+	serializer.serialize_uint32(stbuf.f_flag);
+	serializer.serialize_uint32(stbuf.f_namemax);
 	return Message(message.id, WorkerMessageType::CommandResult, serializer.data());
 }
 
