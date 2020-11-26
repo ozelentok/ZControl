@@ -1,6 +1,8 @@
 #include "DirCommandsHandler.hpp"
 #include "BinarySerializer.hpp"
 #include "BinaryDeserializer.hpp"
+#include <sys/stat.h>
+#include <unistd.h>
 
 DirCommandsHandler::DirCommandsHandler() : _next_fd_id(0) {}
 
@@ -53,7 +55,7 @@ Message DirCommandsHandler::closedir(const Message& message) {
 	}
 
 	BinarySerializer serializer;
-	serializer.serialize_int32(value);
+	serializer.serialize_uint8(value == 0 ? 1 : 0);
 	serializer.serialize_int32(errno);
 	return Message(message.id, WorkerMessageType::CommandResult, serializer.data());
 }
@@ -80,5 +82,30 @@ Message DirCommandsHandler::readdir(const Message& message) {
 	} else {
 		serializer.serialize_int32(EBADF);
 	}
+	return Message(message.id, WorkerMessageType::CommandResult, serializer.data());
+}
+
+Message DirCommandsHandler::mkdir(const Message& message) {
+	BinaryDeserializer deserializer(message.data);
+	const auto dir_path = deserializer.deserialize_str();
+	const auto mode = deserializer.deserialize_int32();
+
+	const int32_t value = ::mkdir(dir_path.c_str(), mode);
+
+	BinarySerializer serializer;
+	serializer.serialize_uint8(value == 0 ? 1 : 0);
+	serializer.serialize_int32(errno);
+	return Message(message.id, WorkerMessageType::CommandResult, serializer.data());
+}
+
+Message DirCommandsHandler::rmdir(const Message& message) {
+	BinaryDeserializer deserializer(message.data);
+	const auto dir_path = deserializer.deserialize_str();
+
+	const int32_t value = ::rmdir(dir_path.c_str());
+
+	BinarySerializer serializer;
+	serializer.serialize_uint8(value == 0 ? 1 : 0);
+	serializer.serialize_int32(errno);
 	return Message(message.id, WorkerMessageType::CommandResult, serializer.data());
 }

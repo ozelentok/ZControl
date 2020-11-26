@@ -10,6 +10,12 @@ enum CommanderMessageType: std::uint8_t
 	Disconnect = 0,
 	GetAttr,
 	Access,
+	Rename,
+	Truncate,
+	Unlink,
+	ChangeMode,
+	ChangeOwner,
+	SetTimes,
 	Open,
 	Close,
 	Read,
@@ -19,6 +25,12 @@ enum CommanderMessageType: std::uint8_t
 	OpenDir,
 	CloseDir,
 	ReadDir,
+	MakeDir,
+	RemoveDir,
+	GetXAttr,
+	SetXAttr,
+	ListXAttr,
+	RemoveXAttr,
 };
 
 enum WorkerMessageType: std::uint8_t

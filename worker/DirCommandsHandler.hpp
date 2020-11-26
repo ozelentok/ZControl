@@ -23,4 +23,6 @@ class DirCommandsHandler {
 		Message opendir(const Message& message);
 		Message readdir(const Message& message);
 		Message closedir(const Message& message);
+		Message mkdir(const Message& message);
+		Message rmdir(const Message& message);
 };

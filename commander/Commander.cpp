@@ -88,12 +88,97 @@ std::pair<bool, int32_t> Commander::getattr(const std::string &file_path, struct
 	return std::make_pair(value, worker_errno);
 }
 
-std::pair<bool, int32_t>  Commander::access(const std::string &file_path, int32_t mode) {
+std::pair<bool, int32_t> Commander::access(const std::string &file_path, int32_t mode) {
 	BinarySerializer serializer;
 	serializer.serialize_str(file_path);
 	serializer.serialize_int32(mode);
 
 	auto commander_msg = Message(_next_command_id++, CommanderMessageType::Access, serializer.data());
+	Message worker_msg = _send_command(commander_msg);
+	BinaryDeserializer deserializer(worker_msg.data);
+
+	auto value = deserializer.deserialize_uint8();
+	auto worker_errno = deserializer.deserialize_int32();
+	return std::make_pair(value, worker_errno);
+}
+
+std::pair<bool, int32_t> Commander::rename(const std::string &old_path, const std::string &new_path) {
+	BinarySerializer serializer;
+	serializer.serialize_str(old_path);
+	serializer.serialize_str(new_path);
+
+	auto commander_msg = Message(_next_command_id++, CommanderMessageType::Rename, serializer.data());
+	Message worker_msg = _send_command(commander_msg);
+	BinaryDeserializer deserializer(worker_msg.data);
+
+	auto value = deserializer.deserialize_uint8();
+	auto worker_errno = deserializer.deserialize_int32();
+	return std::make_pair(value, worker_errno);
+}
+
+std::pair<bool, int32_t> Commander::truncate(const std::string &file_path, int64_t size) {
+	BinarySerializer serializer;
+	serializer.serialize_str(file_path);
+	serializer.serialize_int64(size);
+
+	auto commander_msg = Message(_next_command_id++, CommanderMessageType::Truncate, serializer.data());
+	Message worker_msg = _send_command(commander_msg);
+	BinaryDeserializer deserializer(worker_msg.data);
+
+	auto value = deserializer.deserialize_uint8();
+	auto worker_errno = deserializer.deserialize_int32();
+	return std::make_pair(value, worker_errno);
+}
+
+std::pair<bool, int32_t> Commander::unlink(const std::string &file_path) {
+	BinarySerializer serializer;
+	serializer.serialize_str(file_path);
+
+	auto commander_msg = Message(_next_command_id++, CommanderMessageType::Unlink, serializer.data());
+	Message worker_msg = _send_command(commander_msg);
+	BinaryDeserializer deserializer(worker_msg.data);
+
+	auto value = deserializer.deserialize_uint8();
+	auto worker_errno = deserializer.deserialize_int32();
+	return std::make_pair(value, worker_errno);
+}
+
+std::pair<bool, int32_t> Commander::chmod(const std::string &file_path, int32_t mode) {
+	BinarySerializer serializer;
+	serializer.serialize_str(file_path);
+	serializer.serialize_int32(mode);
+
+	auto commander_msg = Message(_next_command_id++, CommanderMessageType::ChangeMode, serializer.data());
+	Message worker_msg = _send_command(commander_msg);
+	BinaryDeserializer deserializer(worker_msg.data);
+
+	auto value = deserializer.deserialize_uint8();
+	auto worker_errno = deserializer.deserialize_int32();
+	return std::make_pair(value, worker_errno);
+}
+
+std::pair<bool, int32_t> Commander::chown(const std::string &file_path, int32_t owner, int32_t group) {
+	BinarySerializer serializer;
+	serializer.serialize_str(file_path);
+	serializer.serialize_int32(owner);
+	serializer.serialize_int32(group);
+
+	auto commander_msg = Message(_next_command_id++, CommanderMessageType::ChangeOwner, serializer.data());
+	Message worker_msg = _send_command(commander_msg);
+	BinaryDeserializer deserializer(worker_msg.data);
+
+	auto value = deserializer.deserialize_uint8();
+	auto worker_errno = deserializer.deserialize_int32();
+	return std::make_pair(value, worker_errno);
+}
+
+std::pair<bool, int32_t> Commander::utimens(const std::string &file_path, const struct timespec times[2]) {
+	BinarySerializer serializer;
+	serializer.serialize_str(file_path);
+	serializer.serialize_int64(times[0].tv_sec);
+	serializer.serialize_int64(times[1].tv_sec);
+
+	auto commander_msg = Message(_next_command_id++, CommanderMessageType::SetTimes, serializer.data());
 	Message worker_msg = _send_command(commander_msg);
 	BinaryDeserializer deserializer(worker_msg.data);
 
@@ -117,7 +202,7 @@ std::pair<int32_t, int32_t> Commander::open(const std::string &file_path, int32_
 	return std::make_pair(value, worker_errno);
 }
 
-std::pair<int32_t, int32_t> Commander::close(int32_t fd) {
+std::pair<bool, int32_t> Commander::close(int32_t fd) {
 	BinarySerializer serializer;
 	serializer.serialize_int32(fd);
 
@@ -125,7 +210,7 @@ std::pair<int32_t, int32_t> Commander::close(int32_t fd) {
 	Message worker_msg = _send_command(commander_msg);
 	BinaryDeserializer deserializer(worker_msg.data);
 
-	auto value = deserializer.deserialize_int32();
+	auto value = deserializer.deserialize_uint8();
 	auto worker_errno = deserializer.deserialize_int32();
 	return std::make_pair(value, worker_errno);
 }
@@ -151,7 +236,7 @@ std::pair<int32_t, int32_t> Commander::read(int32_t fd, uint8_t *bytes, uint32_t
 	return std::make_pair(value, worker_errno);
 }
 
-std::pair<int32_t, int32_t> Commander::pread(int32_t fd, uint8_t *bytes, uint32_t size, uint64_t offset) {
+std::pair<int32_t, int32_t> Commander::pread(int32_t fd, uint8_t *bytes, uint32_t size, int64_t offset) {
 	BinarySerializer serializer;
 	serializer.serialize_int32(fd);
 	serializer.serialize_uint32(size);
@@ -191,7 +276,7 @@ std::pair<int32_t, int32_t> Commander::write(int32_t fd, const uint8_t *bytes, u
 	return std::make_pair(value, worker_errno);
 }
 
-std::pair<int32_t, int32_t> Commander::pwrite(int32_t fd, const uint8_t *bytes, uint32_t size, uint64_t offset) {
+std::pair<int32_t, int32_t> Commander::pwrite(int32_t fd, const uint8_t *bytes, uint32_t size, int64_t offset) {
 	BinarySerializer serializer;
 	serializer.serialize_int32(fd);
 	serializer.serialize_int64(offset);
@@ -223,7 +308,7 @@ std::pair<int32_t, int32_t> Commander::opendir(const std::string &dir_path) {
 	return std::make_pair(value, worker_errno);
 }
 
-std::pair<int32_t, int32_t> Commander::closedir(int32_t fd) {
+std::pair<bool, int32_t> Commander::closedir(int32_t fd) {
 	BinarySerializer serializer;
 	serializer.serialize_int32(fd);
 
@@ -231,7 +316,7 @@ std::pair<int32_t, int32_t> Commander::closedir(int32_t fd) {
 	Message worker_msg = _send_command(commander_msg);
 	BinaryDeserializer deserializer(worker_msg.data);
 
-	auto value = deserializer.deserialize_int32();
+	auto value = deserializer.deserialize_uint8();
 	auto worker_errno = deserializer.deserialize_int32();
 	return std::make_pair(value, worker_errno);
 }
@@ -254,4 +339,31 @@ std::pair<std::vector<DirEntry>, int32_t> Commander::readdir(int32_t fd, uint32_
 	}
 	auto worker_errno = deserializer.deserialize_int32();
 	return std::make_pair(dir_entries, worker_errno);
+}
+
+std::pair<bool, int32_t> Commander::mkdir(const std::string &dir_path, int32_t mode) {
+	BinarySerializer serializer;
+	serializer.serialize_str(dir_path);
+	serializer.serialize_int32(mode);
+
+	auto commander_msg = Message(_next_command_id++, CommanderMessageType::MakeDir, serializer.data());
+	Message worker_msg = _send_command(commander_msg);
+	BinaryDeserializer deserializer(worker_msg.data);
+
+	auto value = deserializer.deserialize_uint8();
+	auto worker_errno = deserializer.deserialize_int32();
+	return std::make_pair(value, worker_errno);
+}
+
+std::pair<bool, int32_t> Commander::rmdir(const std::string &dir_path) {
+	BinarySerializer serializer;
+	serializer.serialize_str(dir_path);
+
+	auto commander_msg = Message(_next_command_id++, CommanderMessageType::RemoveDir, serializer.data());
+	Message worker_msg = _send_command(commander_msg);
+	BinaryDeserializer deserializer(worker_msg.data);
+
+	auto value = deserializer.deserialize_uint8();
+	auto worker_errno = deserializer.deserialize_int32();
+	return std::make_pair(value, worker_errno);
 }
