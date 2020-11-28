@@ -43,7 +43,6 @@ void Commander::_read_responses() {
 }
 
 Message Commander::_send_command(const Message &commander_msg) {
-	_transport.write(commander_msg);
 	std::promise<Message> promise;
 	auto future = promise.get_future();
 	{
@@ -53,6 +52,7 @@ Message Commander::_send_command(const Message &commander_msg) {
 		}
 		_responses_promises[commander_msg.id] = std::move(promise);
 	}
+	_transport.write(commander_msg);
 	Message worker_msg = future.get();
 	return worker_msg;
 }
