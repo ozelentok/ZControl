@@ -32,7 +32,7 @@ class Commander {
 		void disconnect();
 		std::pair<bool, int32_t> getattr(const std::string &file_path, struct stat &file_info);
 		std::pair<bool, int32_t> access(const std::string &file_path, int32_t mode);
-		std::pair<bool, int32_t> rename(const std::string &old_path, const std::string &new_path);
+		std::pair<bool, int32_t> rename(const std::string &old_path, const std::string &new_path, uint8_t flags);
 		std::pair<bool, int32_t> truncate(const std::string &file_path, int64_t size);
 		std::pair<bool, int32_t> unlink(const std::string &file_path);
 		std::pair<bool, int32_t> chmod(const std::string &file_path, int32_t mode);

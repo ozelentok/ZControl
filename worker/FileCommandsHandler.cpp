@@ -34,7 +34,7 @@ Message FileCommandsHandler::getattr(const Message& message) {
 	BinaryDeserializer deserializer(message.data);
 	const auto file_path = deserializer.deserialize_str();
 
-	struct stat file_info = { 0 };
+	struct stat file_info;
 	const int stat_result = ::stat(file_path.c_str(), &file_info);
 
 	BinarySerializer serializer;
@@ -69,8 +69,27 @@ Message FileCommandsHandler::rename(const Message& message) {
 	BinaryDeserializer deserializer(message.data);
 	const auto old_path = deserializer.deserialize_str();
 	const auto new_path = deserializer.deserialize_str();
+	const auto flags = deserializer.deserialize_uint8();
 
-	const int value = ::rename(old_path.c_str(), new_path.c_str());
+	bool should_rename = true;
+	if (flags & RENAME_NOREPLACE) {
+		struct stat file_info;
+		const int stat_result = ::stat(old_path.c_str(), &file_info);
+		if (stat_result == 0) {
+			should_rename = false;
+			errno = EEXIST;
+		}
+	}
+
+	if (flags & RENAME_EXCHANGE) {
+			should_rename = false;
+			errno = EINVAL;
+	}
+
+	int value = -1;
+	if (should_rename) {
+		value = ::rename(old_path.c_str(), new_path.c_str());
+	}
 
 	BinarySerializer serializer;
 	serializer.serialize_uint8(value == 0 ? 1 : 0);

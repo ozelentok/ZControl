@@ -102,10 +102,11 @@ std::pair<bool, int32_t> Commander::access(const std::string &file_path, int32_t
 	return std::make_pair(value, worker_errno);
 }
 
-std::pair<bool, int32_t> Commander::rename(const std::string &old_path, const std::string &new_path) {
+std::pair<bool, int32_t> Commander::rename(const std::string &old_path, const std::string &new_path, uint8_t flags) {
 	BinarySerializer serializer;
 	serializer.serialize_str(old_path);
 	serializer.serialize_str(new_path);
+	serializer.serialize_uint8(flags);
 
 	auto commander_msg = Message(_next_command_id++, CommanderMessageType::Rename, serializer.data());
 	Message worker_msg = _send_command(commander_msg);

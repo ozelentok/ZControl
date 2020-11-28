@@ -7,13 +7,13 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/vfs.h>
-#define FUSE_USE_VERSION 30
+#define FUSE_USE_VERSION 31
 #include <fuse.h>
 
 static std::unique_ptr<Server> server;
 static const int64_t VirtualRootDirFd = -1;
 
-static void* init_callback(struct fuse_conn_info *conn) {
+static void* init_callback(struct fuse_conn_info *conn, struct fuse_config *cfg) {
 	//TODO: add as parameters from main
 	server = std::make_unique<Server>("0.0.0.0", 4444);
 	server->start();
@@ -36,7 +36,7 @@ static std::pair<std::string, std::string> split_path(const char *path) {
 		std::string(next_slash_index));
 }
 
-static int getattr_callback(const char *path, struct stat *stbuf) {
+static int getattr_callback(const char *path, struct stat *stbuf, struct fuse_file_info *fi) {
 	memset(stbuf, 0, sizeof(*stbuf));
 	try {
 		if (strcmp(path, "/") == 0) {
@@ -99,7 +99,7 @@ static int rmdir_callback(const char *path) {
 	return 0;
 }
 
-static int rename_callback(const char *old_path, const char *new_path) {
+static int rename_callback(const char *old_path, const char *new_path, unsigned int flags) {
 	auto [old_client, old_remote_path] = split_path(old_path);
 	auto [new_client, new_remote_path] = split_path(old_path);
 	if (old_client != new_client) {
@@ -110,14 +110,14 @@ static int rename_callback(const char *old_path, const char *new_path) {
 	if (commander == nullptr) {
 		return -ENOENT;
 	}
-	auto [result, worker_errno] = commander->rename(old_remote_path, new_remote_path);
+	auto [result, worker_errno] = commander->rename(old_remote_path, new_remote_path, flags);
 	if (!result) {
 		return -worker_errno;
 	}
 	return 0;
 }
 
-static int chmod_callback(const char *path, mode_t mode) {
+static int chmod_callback(const char *path, mode_t mode, struct fuse_file_info *fi) {
 	auto [client, remote_path] = split_path(path);
 	auto commander = server->get_commander(client);
 	if (commander == nullptr) {
@@ -130,7 +130,7 @@ static int chmod_callback(const char *path, mode_t mode) {
 	return 0;
 }
 
-static int chown_callback(const char *path, uid_t owner, gid_t group) {
+static int chown_callback(const char *path, uid_t owner, gid_t group, struct fuse_file_info *fi) {
 	auto [client, remote_path] = split_path(path);
 	auto commander = server->get_commander(client);
 	if (commander == nullptr) {
@@ -143,7 +143,7 @@ static int chown_callback(const char *path, uid_t owner, gid_t group) {
 	return 0;
 }
 
-static int truncate_callback(const char *path, off_t size) {
+static int truncate_callback(const char *path, off_t size, struct fuse_file_info *fi) {
 	auto [client, remote_path] = split_path(path);
 	auto commander = server->get_commander(client);
 	if (commander == nullptr) {
@@ -255,16 +255,16 @@ static int opendir_callback(const char *path, struct fuse_file_info *fi) {
 }
 
 static int readdir_callback(const char *path, void *buf, fuse_fill_dir_t filler,
-														off_t offset, struct fuse_file_info *fi) {
+														off_t offset, struct fuse_file_info *fi, enum fuse_readdir_flags flags) {
 	if (fi->fh == VirtualRootDirFd) {
 		struct stat st = { 0 };
 		st.st_mode = S_IFDIR | 0755;
 		st.st_nlink = 2;
-		filler(buf, ".", &st, 0);
-		filler(buf, "..", &st, 0);
+		filler(buf, ".", &st, 0, static_cast<fuse_fill_dir_flags>(0));
+		filler(buf, "..", &st, 0, static_cast<fuse_fill_dir_flags>(0));
 		auto clients = server->get_clients();
 		for (const auto &c : clients) {
-			filler(buf, c.c_str(), &st, 0);
+			filler(buf, c.c_str(), &st, 0, static_cast<fuse_fill_dir_flags>(0));
 		}
 		return 0;
 	}
@@ -282,7 +282,7 @@ static int readdir_callback(const char *path, void *buf, fuse_fill_dir_t filler,
 	for (const DirEntry& e : dirs) {
 		struct stat st = { 0 };
 		st.st_mode = e.type() << 12;
-		if (filler(buf, e.name().c_str(), &st, 0)) {
+		if (filler(buf, e.name().c_str(), &st, 0, static_cast<fuse_fill_dir_flags>(0))) {
 			//TODO: Log exception
 			printf("Filler failed\n");
 			break;
@@ -343,7 +343,7 @@ static int create_callback(const char *path, mode_t mode, struct fuse_file_info 
 	return 0;
 }
 
-static int utimens_callback(const char *path, const struct timespec times[2]) {
+static int utimens_callback(const char *path, const struct timespec times[2], struct fuse_file_info *fi) {
 	auto [client, remote_path] = split_path(path);
 	auto commander = server->get_commander(client);
 	if (commander == nullptr) {
@@ -356,7 +356,7 @@ static int utimens_callback(const char *path, const struct timespec times[2]) {
 	return 0;
 }
 
-static struct fuse_operations fuse_example_operations = {
+static struct fuse_operations zcfs_operations = {
 	.getattr = getattr_callback,
 	.mkdir = mkdir_callback,
 	.unlink = unlink_callback,
@@ -378,9 +378,8 @@ static struct fuse_operations fuse_example_operations = {
 	.access = access_callback,
 	.create = create_callback,
 	.utimens = utimens_callback,
-	.flag_nullpath_ok = 0
 };
 
 int main(int argc, char *argv[]) {
-	return fuse_main(argc, argv, &fuse_example_operations, NULL);
+	return fuse_main(argc, argv, &zcfs_operations, NULL);
 }
