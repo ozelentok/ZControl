@@ -37,6 +37,8 @@ enum CommanderMessageType: std::uint8_t
 enum WorkerMessageType: std::uint8_t
 {
 	CommandResult = 0,
+	CommandError,
+	CommandUnknown,
 };
 
 class Message {
@@ -47,7 +49,6 @@ class Message {
 
 		Message(uint32_t id, uint8_t type, std::vector<uint8_t> &&data);
 };
-
 
 class TransportClosed: public std::runtime_error {
 	public:

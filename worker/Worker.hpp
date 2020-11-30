@@ -15,6 +15,7 @@ class Worker {
 
 		Message _disconnect(const Message& message);
 		void _handle_commander_message(const Message &commander_msg);
+		Message _do_command(const Message &commander_msg);
 
 	public:
 		Worker(const std::string &host, uint16_t port);

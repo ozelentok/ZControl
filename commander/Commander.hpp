@@ -9,6 +9,12 @@
 #include <sys/stat.h>
 #include <sys/statvfs.h>
 
+class RemoteWorkerException: public std::runtime_error {
+	public:
+		RemoteWorkerException(const std::string &what): std::runtime_error(what) {}
+};
+
+
 class Commander {
 	private:
 		MessageTransport _transport;
@@ -20,6 +26,7 @@ class Commander {
 
 		Message _send_command(const Message &commander_msg);
 		void _read_responses();
+		void _set_response_exception(std::promise<Message> &response_promise, const Message &worker_msg);
 
 	public:
 		Commander(TcpSocket &&connection);

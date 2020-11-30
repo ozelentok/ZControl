@@ -29,8 +29,12 @@ void Commander::_read_responses() {
 		try {
 			auto worker_msg = _transport.read();
 			std::lock_guard<std::mutex> lock(_promises_mx);
-			auto promise = std::move(_responses_promises.at(worker_msg.id));
-			promise.set_value(worker_msg);
+			auto resp_promise = std::move(_responses_promises.at(worker_msg.id));
+			if (worker_msg.type == WorkerMessageType::CommandResult) {
+				resp_promise.set_value(worker_msg);
+			} else {
+				_set_response_exception(resp_promise, worker_msg);
+			}
 			_responses_promises.erase(worker_msg.id);
 		} catch (...) {
 			_connected = false;
@@ -42,13 +46,28 @@ void Commander::_read_responses() {
 	}
 }
 
+void Commander::_set_response_exception(std::promise<Message> &response_promise, const Message &worker_msg) {
+	try {
+		if (worker_msg.type == WorkerMessageType::CommandError) {
+			BinaryDeserializer deserializer(worker_msg.data);
+			throw RemoteWorkerException(deserializer.deserialize_str());
+		} else if (worker_msg.type == WorkerMessageType::CommandUnknown) {
+			throw RemoteWorkerException("Unknown command");
+		} else {
+			throw std::runtime_error("Unknown response message type");
+		}
+	} catch (...) {
+		response_promise.set_exception(std::current_exception());
+	}
+}
+
 Message Commander::_send_command(const Message &commander_msg) {
 	std::promise<Message> promise;
 	auto future = promise.get_future();
 	{
 		std::lock_guard<std::mutex> lock(_promises_mx);
 		if (!_connected) {
-			throw std::runtime_error("Worker has disconnected");
+			throw RemoteWorkerException("Disconnected");
 		}
 		_responses_promises[commander_msg.id] = std::move(promise);
 	}

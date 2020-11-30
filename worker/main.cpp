@@ -15,7 +15,9 @@ int main(int argc, char const* argv[])
 		}
 		worker(argv[1], std::stoi(argv[2]));
 		return 0;
-	} catch (std::exception& e) {
+	} catch (std::exception &e) {
 		printf("Exception: %s\n", e.what());
+	} catch (...) {
+		printf("Unknown exception\n");
 	}
 }
