@@ -3,6 +3,7 @@
 #include "BinaryDeserializer.hpp"
 #include <sys/stat.h>
 #include <unistd.h>
+#include <syslog.h>
 
 DirCommandsHandler::DirCommandsHandler() : _next_fd_id(0) {}
 
@@ -19,8 +20,7 @@ DIR* DirCommandsHandler::_get_fd(int32_t fd_id) {
 	std::lock_guard<std::mutex> lock(_fds_mx);
 	auto entry = _fds.find(fd_id);
 	if (entry == _fds.end()) {
-		//TODO Log invalid fd_id in error log
-		printf("Failed to find fd_id: %d\n", fd_id);
+		syslog(LOG_WARNING, "Server used an invalid directory descriptor id: %d", fd_id);
 		return nullptr;
 	}
 	return entry->second;

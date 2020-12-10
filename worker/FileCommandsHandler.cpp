@@ -7,6 +7,7 @@
 #include <sys/statvfs.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <syslog.h>
 
 FileCommandsHandler::FileCommandsHandler() : _next_fd_id(0) {}
 
@@ -23,8 +24,7 @@ int32_t FileCommandsHandler::_get_fd(int32_t fd_id) {
 	std::lock_guard<std::mutex> lock(_fds_mx);
 	auto entry = _fds.find(fd_id);
 	if (entry == _fds.end()) {
-		//TODO Log invalid fd_id in error log
-		printf("Failed to find fd_id: %d\n", fd_id);
+		syslog(LOG_WARNING, "Server used an invalid file descriptor id: %d", fd_id);
 		return -1;
 	}
 	return entry->second;
