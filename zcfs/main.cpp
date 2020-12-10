@@ -1,13 +1,13 @@
 #include "TcpSocket.hpp"
 #include "Commander.hpp"
 #include "Server.hpp"
+#include "SysLog.hpp"
 #include <memory>
 #include <cstdio>
 #include <cstring>
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/vfs.h>
-#include <syslog.h>
 #define FUSE_USE_VERSION 31
 #include <fuse.h>
 
@@ -39,21 +39,21 @@ static std::pair<std::string, std::string> split_path(const char *path) {
 
 #define BEGIN_ZCFS_ERROR_HANDLER  \
 	try {
-#define END_ZCFS_ERROR_HANDLER(error_value)                           \
-	} catch (const std::exception &e) {                                 \
-		syslog(LOG_ERR, "Error on %s(%s): %s", __func__, path, e.what());  \
-		return -error_value;                                              \
-	} catch (...) {                                                     \
-		syslog(LOG_ERR, "Unknwon Error on %s(%s)", __func__, path);       \
-		return -error_value;                                              \
+#define END_ZCFS_ERROR_HANDLER(error_value)                                           \
+	} catch (const std::exception &e) {                                                 \
+		SYSLOG_ERROR("Error on %s(%s): %s", __func__, path, e.what());                    \
+		return -error_value;                                                              \
+	} catch (...) {                                                                     \
+		SYSLOG_ERROR("Unknwon Error on %s(%s)", __func__, path);                          \
+		return -error_value;                                                              \
 	}
-#define END_ZCFS_ERROR_RENAME_HANDLER(error_value)                           \
-	} catch (const std::exception &e) {                                 \
-		syslog(LOG_ERR, "Error on %s(%s, %s): %s", __func__, old_path, new_path, e.what());  \
-		return -error_value;                                              \
-	} catch (...) {                                                     \
-		syslog(LOG_ERR, "Unknwon Error on %s(%s, %s)", __func__, old_path, new_path);       \
-		return -error_value;                                              \
+#define END_ZCFS_ERROR_RENAME_HANDLER(error_value)                                    \
+	} catch (const std::exception &e) {                                                 \
+		SYSLOG_ERROR("Error on %s(%s, %s): %s", __func__, old_path, new_path, e.what());  \
+		return -error_value;                                                              \
+	} catch (...) {                                                                     \
+		SYSLOG_ERROR("Unknwon Error on %s(%s, %s)", __func__, old_path, new_path);        \
+		return -error_value;                                                              \
 	}
 
 static int zcfs_getattr(const char *path, struct stat *stbuf, struct fuse_file_info *fi) {
@@ -329,7 +329,7 @@ static int zcfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 		struct stat st = { 0 };
 		st.st_mode = e.type() << 12;
 		if (filler(buf, e.name().c_str(), &st, 0, static_cast<fuse_fill_dir_flags>(0))) {
-			syslog(LOG_WARNING, "readdir(%s) buffer is full", path);
+			SYSLOG_WARNING("readdir(%s) buffer is full", path);
 			break;
 		}
 	}

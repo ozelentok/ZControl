@@ -1,9 +1,9 @@
 #include "Server.hpp"
+#include "SysLog.hpp"
 
 Server::Server(const std::string &host, uint16_t port) {
 	_server.bind(host, port);
-	//TODO: Server listen how many
-	_server.listen(1);
+	_server.listen(4);
 }
 
 Server::~Server() {
@@ -27,14 +27,18 @@ void Server::_accept_connections() {
 	try {
 		while (!_should_stop) {
 			auto [connection, client_ip, client_port] = _server.accept();
-			printf("Client: %s\n", TcpSocket::format_connection(client_ip, client_port).c_str());
+			SYSLOG_DEBUG("New worker connected: %s\n", TcpSocket::format_connection(client_ip, client_port).c_str());
 			std::lock_guard<std::mutex> lock(_commanders_mx);
 			_commanders.emplace(TcpSocket::format_connection(client_ip, client_port),
 													std::make_unique<Commander>(std::move(connection)));
 		}
+	} catch (const std::exception &e) {
+		if (!_should_stop) {
+			SYSLOG_ERROR("Error accepting worker connection: %s", e.what());
+		}
 	} catch (...) {
 		if (!_should_stop) {
-			printf("Error while accepting connection\n");
+			SYSLOG_ERROR("Unknown Error accepting worker connection");
 		}
 	}
 }

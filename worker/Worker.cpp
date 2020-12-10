@@ -1,6 +1,7 @@
 #include "Worker.hpp"
 #include "BinarySerializer.hpp"
 #include "BinaryDeserializer.hpp"
+#include "SysLog.hpp"
 #include <functional>
 
 Worker::Worker(const std::string &host, uint16_t port) :
@@ -13,17 +14,17 @@ void Worker::work() {
 	while (!_should_disconnect) {
 		try {
 			Message commander_msg(_transport.read());
-			printf("Got message: id: %d, type: %d, data_length: %ld\n",
-						 commander_msg.id, commander_msg.type, commander_msg.data.size());
+			SYSLOG_DEBUG("Got message: id: %d, type: %d, data_length: %ld\n",
+									 commander_msg.id, commander_msg.type, commander_msg.data.size());
 			_thread_pool.submit(std::bind(&Worker::_handle_commander_message, this, std::move(commander_msg)));
 		} catch (const TransportClosed&) {
 			_should_disconnect = true;
 		} catch (const std::exception &e) {
 			_should_disconnect = true;
-			printf("Exception: %s\n", e.what());
+			SYSLOG_ERROR("Error reading message from server: %s\n", e.what());
 		} catch (...) {
 			_should_disconnect = true;
-			printf("Unknown exception\n");
+			SYSLOG_ERROR("Unknwon Error reading message from server");
 		}
 	}
 }
