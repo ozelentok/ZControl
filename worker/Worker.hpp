@@ -11,7 +11,7 @@ class Worker {
 		ThreadPool _thread_pool;
 		FileCommandsHandler _file_handler;
 		DirCommandsHandler _dir_handler;
-		bool _should_disconnect;
+		bool _should_stop;
 
 		Message _disconnect(const Message& message);
 		void _handle_commander_message(const Message &commander_msg);
@@ -25,4 +25,5 @@ class Worker {
 		Worker& operator=(Worker &&other) = delete;
 		~Worker() = default;
 		void work();
+		void stop();
 };

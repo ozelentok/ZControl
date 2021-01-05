@@ -7,30 +7,35 @@
 Worker::Worker(const std::string &host, uint16_t port) :
 	_transport(host, port),
 	_thread_pool(std::thread::hardware_concurrency()),
-	_should_disconnect(false) {
+	_should_stop(false) {
 }
 
 void Worker::work() {
-	while (!_should_disconnect) {
+	while (!_should_stop) {
 		try {
 			Message commander_msg(_transport.read());
 			SYSLOG_DEBUG("Got message: id: %d, type: %d, data_length: %ld\n",
 									 commander_msg.id, commander_msg.type, commander_msg.data.size());
 			_thread_pool.submit(std::bind(&Worker::_handle_commander_message, this, std::move(commander_msg)));
 		} catch (const TransportClosed&) {
-			_should_disconnect = true;
+			_should_stop = true;
 		} catch (const std::exception &e) {
-			_should_disconnect = true;
+			_should_stop = true;
 			SYSLOG_ERROR("Error reading message from server: %s\n", e.what());
 		} catch (...) {
-			_should_disconnect = true;
+			_should_stop = true;
 			SYSLOG_ERROR("Unknwon Error reading message from server");
 		}
 	}
 }
 
+void Worker::stop() {
+	_should_stop = true;
+	_transport.close();
+}
+
 Message Worker::_disconnect(const Message& message) {
-	_should_disconnect = true;
+	_should_stop = true;
 	return Message(message.id, WorkerMessageType::CommandResult, std::vector<uint8_t>(0));
 }
 
