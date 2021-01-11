@@ -4,4 +4,7 @@ add_library(worker STATIC
 	Worker.cpp
 )
 target_include_directories(worker PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(worker PRIVATE base common pthread)
+target_link_libraries(worker PUBLIC base common)
+if(NOT ANDROID)
+	target_link_libraries(worker PUBLIC pthread)
+endif()

@@ -126,7 +126,7 @@ static int zcfs_rmdir(const char *path) {
 static int zcfs_rename(const char *old_path, const char *new_path, unsigned int flags) {
 	BEGIN_ZCFS_ERROR_HANDLER
 	auto [old_client, old_remote_path] = split_path(old_path);
-	auto [new_client, new_remote_path] = split_path(old_path);
+	auto [new_client, new_remote_path] = split_path(new_path);
 	if (old_client != new_client) {
 		return -EXDEV;
 	}

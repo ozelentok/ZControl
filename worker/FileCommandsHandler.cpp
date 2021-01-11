@@ -5,6 +5,7 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/statvfs.h>
+#include <linux/fs.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <syslog.h>

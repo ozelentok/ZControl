@@ -11,7 +11,6 @@ void BinaryDeserializer::_validate_no_overflow(uint32_t size) const {
 	}
 }
 
-
 uint32_t BinaryDeserializer::bytes_available() const {
 	return _serialized.size() - _index;
 }

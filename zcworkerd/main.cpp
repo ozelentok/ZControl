@@ -10,7 +10,7 @@ static void worker(const std::string &host, const uint16_t port) {
 	std::thread worker_thread(&Worker::work, &worker);
 	shutdown_function = [&]() {
 		worker.stop();
-  };
+	};
 	std::signal(SIGINT, [](int) { shutdown_function(); });
 	std::signal(SIGTERM, [](int) { shutdown_function(); });
 	worker_thread.join();
