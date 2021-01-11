@@ -14,7 +14,6 @@ class RemoteWorkerException: public std::runtime_error {
 		RemoteWorkerException(const std::string &what): std::runtime_error(what) {}
 };
 
-
 class Commander {
 	private:
 		MessageTransport _transport;

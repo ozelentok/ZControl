@@ -1,5 +1,6 @@
 #pragma once
 #include "TcpSocket.hpp"
+#include "CancellationPipe.hpp"
 #include <string>
 #include <vector>
 #include <mutex>
@@ -58,9 +59,10 @@ class TransportClosed: public std::runtime_error {
 class MessageTransport {
 	private:
 		TcpSocket _socket;
+		CancellationPipe _poll_canceling_pipe;
 		std::mutex _read_mx;
 		std::mutex _write_mx;
-		void _read_exactly(uint8_t* buffer, uint32_t count);
+		void _read_exactly(uint8_t *buffer, uint32_t count);
 
 	public:
 		MessageTransport(const std::string &host, uint16_t port);

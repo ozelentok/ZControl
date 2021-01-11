@@ -6,6 +6,9 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include <arpa/inet.h>
+#include <poll.h>
+
+static const int NoTimeout = -1;
 
 TcpSocket::TcpSocket() {
 	_socket = socket(AF_INET, SOCK_STREAM, 0);
@@ -97,6 +100,23 @@ void TcpSocket::send(const uint8_t *bytes, size_t size) {
 	if (result <= -1) {
 		throw std::system_error(errno, std::system_category(), "Failed to send");
 	}
+}
+
+bool TcpSocket::poll(int cancellation_pipe) {
+	pollfd pfds[] = {
+		{ .fd = _socket, .events = POLLIN, .revents = 0 },
+		{ .fd = cancellation_pipe, .events = POLLIN, .revents = 0 }
+	};
+	int result = ::poll(pfds, sizeof(pfds) / sizeof(*pfds), NoTimeout);
+	if (result <= -1) {
+		throw std::system_error(errno, std::system_category(), "Failed to poll");
+	}
+	if (pfds[1].revents & POLLIN) {
+		uint8_t buf[64];
+		::read(cancellation_pipe, buf, sizeof(buf) / sizeof(*buf));
+		return false;
+	}
+	return true;
 }
 
 std::string TcpSocket::format_connection(uint32_t ip, uint16_t port) {

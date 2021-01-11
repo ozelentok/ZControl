@@ -24,5 +24,6 @@ class TcpSocket {
 		size_t recv(uint8_t *bytes, size_t size);
 		void send(const std::vector<uint8_t> bytes);
 		void send(const uint8_t *bytes, size_t size);
+		bool poll(int cancellation_pipe);
 		static std::string format_connection(uint32_t ip, uint16_t port);
 };

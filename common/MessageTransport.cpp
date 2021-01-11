@@ -11,10 +11,14 @@ MessageTransport::MessageTransport(const std::string &host, uint16_t port) {
 
 MessageTransport::MessageTransport(TcpSocket &&socket) :_socket(std::move(socket)) {}
 
-void MessageTransport::_read_exactly(uint8_t* buffer, uint32_t count) {
+void MessageTransport::_read_exactly(uint8_t *buffer, uint32_t count) {
 	uint32_t bytes_read = 0;
 	uint32_t total_bytes_read = 0;
 	while (total_bytes_read < count) {
+		if (!_socket.poll(_poll_canceling_pipe.get_read_fd())) {
+			_poll_canceling_pipe.clear();
+			throw CancellationException("Poll was cancelled");
+		}
 		bytes_read = _socket.recv(buffer + total_bytes_read, count - total_bytes_read);
 		if (bytes_read == 0) {
 			throw TransportClosed();
@@ -51,5 +55,6 @@ void MessageTransport::write(const Message& message) {
 }
 
 void MessageTransport::close() {
+	_poll_canceling_pipe.notify();
 	_socket.close();
 }

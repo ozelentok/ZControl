@@ -19,6 +19,8 @@ void Worker::work() {
 			_thread_pool.submit(std::bind(&Worker::_handle_commander_message, this, std::move(commander_msg)));
 		} catch (const TransportClosed&) {
 			_should_stop = true;
+		} catch (const CancellationException&) {
+			_should_stop = true;
 		} catch (const std::exception &e) {
 			_should_stop = true;
 			SYSLOG_ERROR("Error reading message from server: %s\n", e.what());

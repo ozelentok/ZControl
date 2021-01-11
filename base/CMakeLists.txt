@@ -1,6 +1,7 @@
 add_library(base STATIC
 	AddressInfo.cpp
 	AddressInfoErrorCategory.cpp
+	Pipe.cpp
 	TcpSocket.cpp
 	ThreadPool.cpp
 )
