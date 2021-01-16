@@ -14,16 +14,44 @@
 static std::unique_ptr<Server> server;
 static const int64_t VirtualRootDirFd = -1;
 
+static struct zcfs_options_t {
+	const char *host;
+	const char *port;
+	int show_help;
+} zcfs_options;
+
+static uint16_t parse_port(const char *port_str) {
+	if (port_str == nullptr) {
+		throw std::invalid_argument("Port string must not be null");
+	}
+	long port = strtol(port_str, nullptr, 10);
+	if (port < 1 || port > 65535) {
+		throw std::runtime_error("Port must be between 1 and 65535");
+	}
+	return static_cast<uint16_t>(port);
+}
+
 static void* zcfs_init(struct fuse_conn_info *conn, struct fuse_config *cfg) {
-	//TODO: add as parameters from main
-	server = std::make_unique<Server>("0.0.0.0", 4444);
-	server->start();
+	try {
+		server = std::make_unique<Server>(zcfs_options.host, parse_port(zcfs_options.port));
+		server->start();
+	} catch (const std::exception &e) {
+		SYSLOG_ERROR("Error initiating server: %s", e.what());
+		fprintf(stderr, "Error initiating server: %s", e.what());
+		fuse_exit(fuse_get_context()->fuse);
+	} catch (...) {
+		SYSLOG_ERROR("Unknown Error initiating server\n");
+		fprintf(stderr, "Unknown Error initiating server");
+		fuse_exit(fuse_get_context()->fuse);
+	}
 	return nullptr;
 }
 
 static void zcfs_destroy(void *private_data) {
-	server->stop();
-	server.reset(nullptr);
+	if (server) {
+		server->stop();
+		server.reset(nullptr);
+	}
 }
 
 static std::pair<std::string, std::string> split_path(const char *path) {
@@ -434,6 +462,41 @@ static struct fuse_operations zcfs_operations = {
 	.utimens = zcfs_utimens,
 };
 
+
+#define ZCFS_FUSE_OPT(t, p) { t, offsetof(struct zcfs_options_t, p), 1 }
+
+static const struct fuse_opt zcfs_fuse_opts[] = {
+	ZCFS_FUSE_OPT("host=%s", host),
+	ZCFS_FUSE_OPT("port=%s", port),
+	ZCFS_FUSE_OPT("-h", show_help),
+	ZCFS_FUSE_OPT("--help", show_help),
+	FUSE_OPT_END
+};
+
+static void show_help(const char *progname) {
+	printf("Usage: %s <mountpoint> [options]\n"
+				"\n"
+				"ZCFS Options\n"
+				"    -h   --help            print help\n"
+				"    -o host=HOST           host to listen on (default: 0.0.0.0)\n"
+				"    -o port=PORT           port to listen on (default: 4444)\n"
+				"\n"
+				"FUSE Options:\n", progname);
+}
+
 int main(int argc, char *argv[]) {
-	return fuse_main(argc, argv, &zcfs_operations, NULL);
+	struct fuse_args args = FUSE_ARGS_INIT(argc, argv);
+	zcfs_options.host = strdup("0.0.0.0");
+	zcfs_options.port = strdup("4444");
+	if (fuse_opt_parse(&args, &zcfs_options, zcfs_fuse_opts, NULL) == -1) {
+		return 1;
+	}
+	if (zcfs_options.show_help) {
+		show_help(args.argv[0]);
+		fuse_lib_help(&args);
+		return 0;
+	}
+	int result = fuse_main(args.argc, args.argv, &zcfs_operations, NULL);
+	fuse_opt_free_args(&args);
+	return result;
 }
