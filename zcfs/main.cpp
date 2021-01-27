@@ -13,6 +13,7 @@
 
 static std::unique_ptr<Server> server;
 static const int64_t VirtualRootDirFd = -1;
+static const uint32_t MaxDirsReadPerCall = 2048;
 
 static struct zcfs_options_t {
 	const char *host;
@@ -347,20 +348,24 @@ static int zcfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 	if (commander == nullptr) {
 		return -EIO;
 	}
-	// TODO: Call readdir in a loop for directories with more than 1024 entries
-	auto [dirs, worker_errno] = commander->readdir(fi->fh, 1024);
-	if (worker_errno != 0) {
-		return -worker_errno;
-	}
 
-	for (const DirEntry& e : dirs) {
-		struct stat st = { 0 };
-		st.st_mode = e.type() << 12;
-		if (filler(buf, e.name().c_str(), &st, 0, static_cast<fuse_fill_dir_flags>(0))) {
-			SYSLOG_WARNING("readdir(%s) buffer is full", path);
-			break;
+	bool should_readdir_again = false;
+	do {
+		auto [dirs, worker_errno] = commander->readdir(fi->fh, MaxDirsReadPerCall);
+		if (worker_errno != 0) {
+			return -worker_errno;
 		}
-	}
+
+		for (const DirEntry& e : dirs) {
+			struct stat st = { 0 };
+			st.st_mode = e.type() << 12;
+			if (filler(buf, e.name().c_str(), &st, 0, static_cast<fuse_fill_dir_flags>(0))) {
+				SYSLOG_WARNING("readdir(%s) buffer is full", path);
+				break;
+			}
+		}
+		should_readdir_again = dirs.size() == MaxDirsReadPerCall;
+	} while (should_readdir_again);
 	return 0;
 	END_ZCFS_ERROR_HANDLER(EIO)
 }
