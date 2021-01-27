@@ -241,7 +241,7 @@ Message FileCommandsHandler::read(const Message& message) {
 	if (value >= 0) {
 		buffer.resize(value);
 	}
-	serializer.serialize_vector(buffer);
+	serializer.serialize_byte_vector(buffer);
 	return Message(message.id, WorkerMessageType::CommandResult, serializer.data());
 }
 
@@ -260,14 +260,14 @@ Message FileCommandsHandler::pread(const Message& message) {
 	if (value >= 0) {
 		buffer.resize(value);
 	}
-	serializer.serialize_vector(buffer);
+	serializer.serialize_byte_vector(buffer);
 	return Message(message.id, WorkerMessageType::CommandResult, serializer.data());
 }
 
 Message FileCommandsHandler::write(const Message& message) {
 	BinaryDeserializer deserializer(message.data);
 	const auto fd_id = deserializer.deserialize_int32();
-	const auto bytes = deserializer.deserialize_vector();
+	const auto bytes = deserializer.deserialize_byte_vector();
 
 	const int32_t value = ::write(_get_fd(fd_id), bytes.data(), bytes.size());
 
@@ -281,7 +281,7 @@ Message FileCommandsHandler::pwrite(const Message& message) {
 	BinaryDeserializer deserializer(message.data);
 	const auto fd_id = deserializer.deserialize_int32();
 	const auto offset = deserializer.deserialize_int64();
-	const auto bytes = deserializer.deserialize_vector();
+	const auto bytes = deserializer.deserialize_byte_vector();
 
 	const int32_t value = ::pwrite(_get_fd(fd_id), bytes.data(), bytes.size(), offset);
 

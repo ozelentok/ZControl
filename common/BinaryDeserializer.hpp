@@ -23,6 +23,6 @@ class BinaryDeserializer {
 		int32_t deserialize_int32();
 		int64_t deserialize_int64();
 		std::string deserialize_str();
-		std::vector<uint8_t> deserialize_vector();
-		std::vector<uint8_t> deserialize_vector(uint32_t size);
+		std::vector<uint8_t> deserialize_byte_vector();
+		std::vector<uint8_t> deserialize_byte_vector(uint32_t size);
 };

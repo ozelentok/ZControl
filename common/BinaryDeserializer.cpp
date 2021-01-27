@@ -55,12 +55,12 @@ std::string BinaryDeserializer::deserialize_str() {
 	return value;
 }
 
-std::vector<uint8_t> BinaryDeserializer::deserialize_vector() {
+std::vector<uint8_t> BinaryDeserializer::deserialize_byte_vector() {
 	const uint32_t length = deserialize_uint32();
-	return deserialize_vector(length);
+	return deserialize_byte_vector(length);
 }
 
-std::vector<uint8_t> BinaryDeserializer::deserialize_vector(uint32_t length) {
+std::vector<uint8_t> BinaryDeserializer::deserialize_byte_vector(uint32_t length) {
 	_validate_no_overflow(length);
 	std::vector<uint8_t> value(_serialized.begin() + _index, _serialized.begin() + _index + length);
 	_index += length;

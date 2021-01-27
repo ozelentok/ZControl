@@ -271,7 +271,7 @@ std::pair<int32_t, int32_t> Commander::read(int32_t fd, uint8_t *bytes, uint32_t
 	auto value = deserializer.deserialize_int32();
 	auto worker_errno = deserializer.deserialize_int32();
 	if (value > 0) {
-		auto bytes_vector = deserializer.deserialize_vector();
+		auto bytes_vector = deserializer.deserialize_byte_vector();
 		if (bytes_vector.size() > size) {
 			throw std::runtime_error("read returned more bytes than requested");
 		}
@@ -293,7 +293,7 @@ std::pair<int32_t, int32_t> Commander::pread(int32_t fd, uint8_t *bytes, uint32_
 	auto value = deserializer.deserialize_int32();
 	auto worker_errno = deserializer.deserialize_int32();
 	if (value > 0) {
-		auto bytes_vector = deserializer.deserialize_vector();
+		auto bytes_vector = deserializer.deserialize_byte_vector();
 		if (bytes_vector.size() > size) {
 			throw std::runtime_error("pread returned more bytes than requested");
 		}
@@ -305,11 +305,7 @@ std::pair<int32_t, int32_t> Commander::pread(int32_t fd, uint8_t *bytes, uint32_
 std::pair<int32_t, int32_t> Commander::write(int32_t fd, const uint8_t *bytes, uint32_t size) {
 	BinarySerializer serializer;
 	serializer.serialize_int32(fd);
-	serializer.serialize_uint32(size);
-	//TODO: Serealize bytes array
-	for (uint32_t i = 0; i < size; i++) {
-		serializer.serialize_uint8(bytes[i]);
-	}
+	serializer.serialize_bytes(bytes, size);
 
 	auto commander_msg = Message(_next_command_id++, CommanderMessageType::Write, serializer.data());
 	Message worker_msg = _send_command(commander_msg);
@@ -324,11 +320,7 @@ std::pair<int32_t, int32_t> Commander::pwrite(int32_t fd, const uint8_t *bytes, 
 	BinarySerializer serializer;
 	serializer.serialize_int32(fd);
 	serializer.serialize_int64(offset);
-	serializer.serialize_uint32(size);
-	//TODO: Serealize bytes array
-	for (uint32_t i = 0; i < size; i++) {
-		serializer.serialize_uint8(bytes[i]);
-	}
+	serializer.serialize_bytes(bytes, size);
 
 	auto commander_msg = Message(_next_command_id++, CommanderMessageType::PWrite, serializer.data());
 	Message worker_msg = _send_command(commander_msg);

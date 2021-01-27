@@ -41,7 +41,7 @@ Message MessageTransport::read() {
 	_read_exactly(msg_buffer.data(), msg_buffer.size());
 	lock.unlock();
 	BinaryDeserializer msg_deserializer(msg_buffer);
-	auto data = msg_deserializer.deserialize_vector(data_size);
+	auto data = msg_deserializer.deserialize_byte_vector(data_size);
 	return Message(id, type, std::move(data));
 }
 
@@ -49,7 +49,7 @@ void MessageTransport::write(const Message& message) {
 	BinarySerializer serializer;
 	serializer.serialize_uint32(message.id);
 	serializer.serialize_uint8(message.type);
-	serializer.serialize_vector(message.data);
+	serializer.serialize_byte_vector(message.data);
 	std::lock_guard<std::mutex> lock(_write_mx);
 	_socket.send(serializer.data());
 }
