@@ -121,5 +121,5 @@ bool TcpSocket::poll(int cancellation_pipe) {
 std::string TcpSocket::format_connection(uint32_t ip, uint16_t port) {
   struct in_addr addr;
   addr.s_addr = ip;
-  return std::string(inet_ntoa(addr)) + ':' + std::to_string(htons(port));
+  return std::string(inet_ntoa(addr));
 }

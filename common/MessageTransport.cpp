@@ -15,7 +15,6 @@ void MessageTransport::_read_exactly(uint8_t *buffer, uint32_t count) {
   uint32_t total_bytes_read = 0;
   while (total_bytes_read < count) {
     if (!_socket.poll(_poll_canceling_pipe.get_read_fd())) {
-      _poll_canceling_pipe.clear();
       throw CancellationException("Poll was cancelled");
     }
     bytes_read = _socket.recv(buffer + total_bytes_read, count - total_bytes_read);
