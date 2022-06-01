@@ -19,13 +19,13 @@ make -j
 To diasble building of unneeded components, override the options specified under the main `CMakeList.txt`
 
 ## ZCFS Usage
-- Mount ZCFS under /mnt/zc with default host and port parameters (0.0.0.0:4444)
+- Mount ZCFS under /mnt/z with default host and port parameters (0.0.0.0:4444)
 ```
 ./zcfs/zcfs /mnt/z
 ```
-Mount ZCFS under /mnt/zc with specified host and port parameters
+Mount ZCFS under /mnt/z with specified host and port parameters
 ```
-./zcfs/zcfs /mnt/zc -o host=127.0.0.1,port=4422
+./zcfs/zcfs /mnt/z -o host=127.0.0.1,port=4422
 ````
 To unmount, use `unmount` as in other file systems
 

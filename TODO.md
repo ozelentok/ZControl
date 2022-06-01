@@ -1,0 +1,18 @@
+- Popen that returns a Process descriptor that allows the commander to write to stdin and get messages from stdout and stderr
+	- open_process(...)
+	- write_process(pd, ...)
+	- enable_process_callback(pd, ...)
+	- close_process(pd, ...)
+	- PROCESS_STDOUT_MESSAGE, PROCESS_STDERR_MESSAGE
+- Port Forwarding needs to be done using Node-to-Master RPC, callback
+	- Local Port Forwarding (Master-through-Node)
+	- open_socket(...) - return socket descriptor
+	- connect_socket(...)
+	- write_socket(ss, ...)
+	- enable_socket_data_callback(pd, ...)
+	- SOCKET_DATA_MESSAGE,
+	- close_socket(pd, ...)
+	- bind_socket(pd, ...)
+	- enable_socket_accept_callback(pd, ...)
+	- SOCKET_ACCEPT_MESSAGE
+- Find a logical and comfortable method to execute a commands through filesystem and see their outputs
