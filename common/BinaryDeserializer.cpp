@@ -22,8 +22,9 @@ uint8_t BinaryDeserializer::deserialize_uint8() {
 uint32_t BinaryDeserializer::deserialize_uint32() {
   uint32_t value = 0;
   _validate_no_overflow(sizeof(value));
-  for (uint32_t i = 1; i <= sizeof(value); i++, _index++) {
-    value += _serialized[_index] << (8 * (sizeof(value) - i));
+  for (uint32_t i = 0; i < sizeof(value); i++, _index++) {
+    value <<= 8;
+    value += _serialized[_index];
   }
   return value;
 }
@@ -31,17 +32,20 @@ uint32_t BinaryDeserializer::deserialize_uint32() {
 int32_t BinaryDeserializer::deserialize_int32() {
   int32_t value = 0;
   _validate_no_overflow(sizeof(value));
-  for (uint32_t i = 1; i <= sizeof(value); i++, _index++) {
-    value += _serialized[_index] << (8 * (sizeof(value) - i));
+  for (uint32_t i = 0; i < sizeof(value); i++, _index++) {
+    value <<= 8;
+    value += _serialized[_index];
   }
   return value;
 }
 
 int64_t BinaryDeserializer::deserialize_int64() {
   int64_t value = 0;
+  uint32_t shifting = 0;
   _validate_no_overflow(sizeof(value));
-  for (uint32_t i = 1; i <= sizeof(value); i++, _index++) {
-    value += _serialized[_index] << (8 * (sizeof(value) - i));
+  for (uint32_t i = 0; i < sizeof(value); i++, _index++) {
+    value <<= 8;
+    value += _serialized[_index];
   }
   return value;
 }
