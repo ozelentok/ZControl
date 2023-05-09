@@ -2,6 +2,7 @@
 #include <queue>
 #include <mutex>
 #include <condition_variable>
+#include <system_error>
 
 class QueueShutdown : public std::runtime_error {
 public:
