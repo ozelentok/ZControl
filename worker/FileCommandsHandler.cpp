@@ -253,7 +253,7 @@ Message FileCommandsHandler::pread(const Message &message) {
   const auto offset = deserializer.deserialize_int64();
   std::vector<uint8_t> buffer(size);
 
-  const int32_t value = ::pread(_get_fd(fd_id), buffer.data(), size, offset);
+  const int32_t value = ::pread64(_get_fd(fd_id), buffer.data(), size, offset);
 
   BinarySerializer serializer;
   serializer.serialize_int32(value);
@@ -284,7 +284,7 @@ Message FileCommandsHandler::pwrite(const Message &message) {
   const auto offset = deserializer.deserialize_int64();
   const auto bytes = deserializer.deserialize_byte_vector();
 
-  const int32_t value = ::pwrite(_get_fd(fd_id), bytes.data(), bytes.size(), offset);
+  const int32_t value = ::pwrite64(_get_fd(fd_id), bytes.data(), bytes.size(), offset);
 
   BinarySerializer serializer;
   serializer.serialize_int32(value);
