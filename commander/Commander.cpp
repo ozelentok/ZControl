@@ -1,6 +1,7 @@
 #include "Commander.hpp"
 #include "BinarySerializer.hpp"
 #include "BinaryDeserializer.hpp"
+#include "SysLog.hpp"
 #include <stdexcept>
 #include <cstring>
 #include <sys/stat.h>
@@ -79,7 +80,18 @@ void Commander::disconnect() {
     return;
   }
   auto commander_msg = Message(_next_command_id++, CommanderMessageType::Disconnect, std::vector<uint8_t>(0));
-  _send_command(commander_msg);
+  try {
+    _send_command(commander_msg);
+  } catch (const std::system_error &) {
+    // Closed socket
+  } catch (const std::exception &e) {
+    SYSLOG_ERROR("Error sending disconnect command: %s", e.what());
+    fprintf(stderr, "Error sending disconnect command: %s", e.what());
+  } catch (...) {
+    SYSLOG_ERROR("Unknown Error sending disconnect command\n");
+    fprintf(stderr, "Unknown Error sending disconnect command");
+  }
+
   _connected = false;
 }
 
