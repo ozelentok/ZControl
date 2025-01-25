@@ -11,7 +11,7 @@ void Worker::work() {
   while (!_should_stop) {
     try {
       Message commander_msg(_transport.read());
-      SYSLOG_DEBUG("Got message: id: %d, type: %d, data_length: %ld\n", commander_msg.id, commander_msg.type,
+      SYSLOG_DEBUG("Got message: id: %d, type: %d, data_length: %zu\n", commander_msg.id, commander_msg.type,
                    commander_msg.data.size());
       _thread_pool.submit(std::bind(&Worker::_handle_commander_message, this, std::move(commander_msg)));
     } catch (const TransportClosed &) {
