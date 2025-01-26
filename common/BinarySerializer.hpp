@@ -24,5 +24,5 @@ public:
   void serialize_byte_vector(const std::vector<uint8_t> &value);
   void serialize_bytes(const uint8_t *bytes, uint32_t length);
 
-  std::vector<uint8_t> data() const;
+  std::vector<uint8_t> data();
 };

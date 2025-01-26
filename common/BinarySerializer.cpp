@@ -1,6 +1,6 @@
 #include "BinarySerializer.hpp"
-#include <stdexcept>
 #include <cstring>
+#include <stdexcept>
 
 BinarySerializer::BinarySerializer() : _index(0) {}
 
@@ -75,6 +75,11 @@ void BinarySerializer::serialize_bytes(const uint8_t *bytes, uint32_t length) {
   _index += length;
 }
 
-std::vector<uint8_t> BinarySerializer::data() const {
-  return _serialized;
+std::vector<uint8_t> BinarySerializer::data() {
+  std::vector<uint8_t> serialized;
+
+  std::swap(serialized, _serialized);
+  _index = 0;
+
+  return serialized;
 }
