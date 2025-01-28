@@ -1,3 +1,13 @@
 .clangd
-build/
+CMakeCache.txt
+CMakeFiles
+CMakeLists.txt.user
+CMakeScripts
+CMakeUserPresets.json
+CTestTestfile.cmake
+Makefile
+cmake_install.cmake
 compile_commands.json
+install_manifest.txt
+build/
+_deps
