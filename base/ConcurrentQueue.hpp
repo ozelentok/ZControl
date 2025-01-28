@@ -17,7 +17,7 @@ private:
   bool _shutdown;
 
 public:
-  ConcurrentQueue() : _shutdown(false){};
+  ConcurrentQueue() : _shutdown(false) {};
   ConcurrentQueue(const ConcurrentQueue &other) = delete;
   ConcurrentQueue(ConcurrentQueue &&other) = delete;
   ConcurrentQueue &operator=(const ConcurrentQueue &other) = delete;

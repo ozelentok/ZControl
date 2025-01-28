@@ -49,8 +49,8 @@ public:
   Message(uint32_t id, uint8_t type, std::vector<uint8_t> &&data);
   Message(const Message &other) = delete;
   Message(Message &&other) = default;
-  Message& operator=(const Message &other) = delete;
-  Message& operator=(Message &&other)  = default;
+  Message &operator=(const Message &other) = delete;
+  Message &operator=(Message &&other) = default;
   ~Message() = default;
 };
 

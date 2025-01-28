@@ -1,5 +1,3 @@
-#include "TcpSocket.hpp"
-#include "Commander.hpp"
 #include "Server.hpp"
 #include "SysLog.hpp"
 #include <memory>
@@ -467,8 +465,7 @@ static struct fuse_operations zcfs_operations = {
     .utimens = zcfs_utimens,
 };
 
-#define ZCFS_FUSE_OPT(t, p)                                                                                            \
-  { t, offsetof(struct zcfs_options_t, p), 1 }
+#define ZCFS_FUSE_OPT(t, p) {t, offsetof(struct zcfs_options_t, p), 1}
 
 static const struct fuse_opt zcfs_fuse_opts[] = {ZCFS_FUSE_OPT("host=%s", host), ZCFS_FUSE_OPT("port=%s", port),
                                                  ZCFS_FUSE_OPT("-h", show_help), ZCFS_FUSE_OPT("--help", show_help),
