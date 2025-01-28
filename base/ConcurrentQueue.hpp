@@ -2,7 +2,7 @@
 #include <queue>
 #include <mutex>
 #include <condition_variable>
-#include <system_error>
+#include <stdexcept>
 
 class QueueShutdown : public std::runtime_error {
 public:
@@ -29,9 +29,15 @@ public:
     return _queue.empty();
   }
 
-  void push(const T &&value) {
+  void push(const T &value) {
     std::lock_guard<std::mutex> lock(_mx);
     _queue.push(value);
+    _cv.notify_one();
+  }
+
+  void push(T &&value) {
+    std::lock_guard<std::mutex> lock(_mx);
+    _queue.push(std::forward<T>(value));
     _cv.notify_one();
   }
 

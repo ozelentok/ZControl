@@ -1,20 +1,21 @@
 #pragma once
-#include "TcpSocket.hpp"
+#include "ConcurrentQueue.hpp"
+#include "DirCommandsHandler.hpp"
+#include "FileCommandsHandler.hpp"
 #include "MessageTransport.hpp"
 #include "ThreadPool.hpp"
-#include "FileCommandsHandler.hpp"
-#include "DirCommandsHandler.hpp"
 
 class Worker {
 private:
   MessageTransport _transport;
   ThreadPool _thread_pool;
+  ConcurrentQueue<Message> _message_queue;
   FileCommandsHandler _file_handler;
   DirCommandsHandler _dir_handler;
   bool _should_stop;
 
+  void __handle_messages();
   Message _disconnect(const Message &message);
-  void _handle_commander_message(const Message &commander_msg);
   Message _do_command(const Message &commander_msg);
 
 public:

@@ -27,14 +27,15 @@ void Commander::_read_responses() {
   while (_connected) {
     try {
       auto worker_msg = _transport.read();
+      auto msg_id = worker_msg.id;
       std::lock_guard<std::mutex> lock(_promises_mx);
-      auto resp_promise = std::move(_responses_promises.at(worker_msg.id));
+      auto resp_promise = std::move(_responses_promises.at(msg_id));
       if (worker_msg.type == WorkerMessageType::CommandResult) {
-        resp_promise.set_value(worker_msg);
+        resp_promise.set_value(std::move(worker_msg));
       } else {
         _set_response_exception(resp_promise, worker_msg);
       }
-      _responses_promises.erase(worker_msg.id);
+      _responses_promises.erase(msg_id);
     } catch (...) {
       _connected = false;
       std::lock_guard<std::mutex> lock(_promises_mx);
