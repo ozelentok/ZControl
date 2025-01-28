@@ -24,7 +24,7 @@ void Worker::work() {
       SYSLOG_ERROR("Error reading message from server: %s", e.what());
     } catch (...) {
       _should_stop = true;
-      SYSLOG_ERROR("Unknwon Error reading message from server");
+      SYSLOG_ERROR("Unknown Error reading message from server");
     }
   }
 }
@@ -49,7 +49,7 @@ void Worker::__handle_messages() {
       SYSLOG_ERROR("Error handling message: %s", e.what());
     } catch (...) {
       _should_stop = true;
-      SYSLOG_ERROR("Unknwon Error handling message");
+      SYSLOG_ERROR("Unknown Error handling message");
     }
   }
 }

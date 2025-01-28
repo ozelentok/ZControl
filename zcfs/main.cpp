@@ -71,7 +71,7 @@ static std::pair<std::string, std::string> split_path(const char *path) {
     return -error_value;                                                                                               \
   }                                                                                                                    \
   catch (...) {                                                                                                        \
-    SYSLOG_ERROR("Unknwon Error on %s(%s)", __func__, path);                                                           \
+    SYSLOG_ERROR("Unknown Error on %s(%s)", __func__, path);                                                           \
     return -error_value;                                                                                               \
   }
 #define END_ZCFS_ERROR_RENAME_HANDLER(error_value)                                                                     \
@@ -81,7 +81,7 @@ static std::pair<std::string, std::string> split_path(const char *path) {
     return -error_value;                                                                                               \
   }                                                                                                                    \
   catch (...) {                                                                                                        \
-    SYSLOG_ERROR("Unknwon Error on %s(%s, %s)", __func__, old_path, new_path);                                         \
+    SYSLOG_ERROR("Unknown Error on %s(%s, %s)", __func__, old_path, new_path);                                         \
     return -error_value;                                                                                               \
   }
 
