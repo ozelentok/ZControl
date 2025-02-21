@@ -485,6 +485,8 @@ static void show_help(const char *progname) {
 
 int main(int argc, char *argv[]) {
   struct fuse_args args = FUSE_ARGS_INIT(argc, argv);
+  auto args_guard = std::unique_ptr<fuse_args, decltype(&fuse_opt_free_args)>{&args, &fuse_opt_free_args};
+
   zcfs_options.host = strdup("0.0.0.0");
   zcfs_options.port = strdup("4444");
   if (fuse_opt_parse(&args, &zcfs_options, zcfs_fuse_opts, NULL) == -1) {
@@ -496,6 +498,5 @@ int main(int argc, char *argv[]) {
     return 0;
   }
   int result = fuse_main(args.argc, args.argv, &zcfs_operations, NULL);
-  fuse_opt_free_args(&args);
   return result;
 }
