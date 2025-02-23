@@ -97,7 +97,7 @@ void TcpSocket::send(const std::vector<uint8_t> bytes) {
 }
 
 void TcpSocket::send(const uint8_t *bytes, size_t size) {
-  ssize_t result = ::send(_socket, bytes, size, 0);
+  ssize_t result = ::send(_socket, bytes, size, MSG_NOSIGNAL);
   if (result <= -1) {
     throw std::system_error(errno, std::system_category(), "Failed to send");
   }
