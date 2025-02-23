@@ -10,10 +10,13 @@ class DirCommandsHandler {
 private:
   std::map<int32_t, DIR *> _fds;
   std::mutex _fds_mx;
-  std::atomic_uint32_t _next_fd_id;
+  std::atomic_int32_t _next_fd_id;
+  std::map<int32_t, const std::vector<dirent>*> _overridden_fds;
   DIR *_get_fd(int32_t fd_id);
 
 public:
+  static const std::map<std::string, const std::vector<dirent>> DirsToOverride;
+
   DirCommandsHandler();
   DirCommandsHandler(const DirCommandsHandler &other) = delete;
   DirCommandsHandler(DirCommandsHandler &&other) = delete;

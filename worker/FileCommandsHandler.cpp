@@ -24,12 +24,12 @@ FileCommandsHandler::~FileCommandsHandler() {
 
 int32_t FileCommandsHandler::_get_fd(int32_t fd_id) {
   std::lock_guard<std::mutex> lock(_fds_mx);
-  auto entry = _fds.find(fd_id);
-  if (entry == _fds.end()) {
+  auto iter = _fds.find(fd_id);
+  if (iter == _fds.end()) {
     syslog(LOG_WARNING, "Server used an invalid file descriptor id: %d", fd_id);
     return -1;
   }
-  return entry->second;
+  return iter->second;
 }
 
 Message FileCommandsHandler::getattr(const Message &message) {

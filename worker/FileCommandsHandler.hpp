@@ -8,7 +8,7 @@ class FileCommandsHandler {
 private:
   std::map<int32_t, int32_t> _fds;
   std::mutex _fds_mx;
-  std::atomic_uint32_t _next_fd_id;
+  std::atomic_int32_t _next_fd_id;
   int32_t _get_fd(int32_t fd_id);
 
 public:
