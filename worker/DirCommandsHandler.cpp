@@ -95,7 +95,7 @@ Message DirCommandsHandler::readdir(const Message &message) {
 
   auto overridden_iter = _overridden_fds.find(fd_id);
   auto should_override = overridden_iter != _overridden_fds.end();
-  DIR *fd = 0;
+  DIR *fd = nullptr;
 
   BinarySerializer serializer;
   if (!should_override) {

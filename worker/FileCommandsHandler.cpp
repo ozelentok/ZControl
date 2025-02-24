@@ -76,7 +76,7 @@ Message FileCommandsHandler::rename(const Message &message) {
   bool should_rename = true;
   if (flags & RENAME_NOREPLACE) {
     struct stat file_info;
-    const int stat_result = ::stat(old_path.c_str(), &file_info);
+    const int stat_result = ::stat(new_path.c_str(), &file_info);
     if (stat_result == 0) {
       should_rename = false;
       errno = EEXIST;
