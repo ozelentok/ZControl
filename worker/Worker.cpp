@@ -32,6 +32,7 @@ void Worker::work() {
 void Worker::stop() {
   _should_stop = true;
   _transport.close();
+  _message_queue.shutdown();
 }
 
 void Worker::__handle_messages() {
