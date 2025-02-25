@@ -4,17 +4,34 @@
 #include <functional>
 
 Worker::Worker(const std::string &host, uint16_t port)
-    : _transport(host, port), _thread_pool(std::thread::hardware_concurrency()), _should_stop(false) {}
+    : _transport(host, port), _should_stop(false), _reader_thread(std::bind(&Worker::_read_messages, this)),
+      _handlers_pool(std::thread::hardware_concurrency()) {
+  for (auto i = 0; i < std::thread::hardware_concurrency() - 1; i++) {
+    _handlers_pool.submit(std::bind(&Worker::_handle_messages, this));
+  }
+}
 
 Worker::~Worker() {
   try {
-    stop();
+    close();
+    wait();
   } catch (...) {
   }
 }
 
-void Worker::work() {
-  _thread_pool.submit(std::bind(&Worker::__handle_messages, this));
+void Worker::close() {
+  _should_stop = true;
+  _transport.close();
+  _message_queue.shutdown();
+}
+
+void Worker::wait() {
+  if (_reader_thread.joinable()) {
+    _reader_thread.join();
+  }
+}
+
+void Worker::_read_messages() {
   while (!_should_stop) {
     try {
       Message commander_msg(_transport.read());
@@ -35,13 +52,7 @@ void Worker::work() {
   }
 }
 
-void Worker::stop() {
-  _should_stop = true;
-  _transport.close();
-  _message_queue.shutdown();
-}
-
-void Worker::__handle_messages() {
+void Worker::_handle_messages() {
   while (!_should_stop) {
     try {
       const Message msg = _message_queue.pop();

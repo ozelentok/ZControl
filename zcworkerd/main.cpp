@@ -1,5 +1,4 @@
 #include "Worker.hpp"
-#include <thread>
 #include <csignal>
 #include <cstdio>
 
@@ -7,11 +6,10 @@ static std::function<void()> shutdown_function;
 
 static void worker(const std::string &host, const uint16_t port) {
   Worker worker(host, port);
-  std::thread worker_thread(&Worker::work, &worker);
-  shutdown_function = [&]() { worker.stop(); };
+  shutdown_function = [&]() { worker.close(); };
   std::signal(SIGINT, [](int) { shutdown_function(); });
   std::signal(SIGTERM, [](int) { shutdown_function(); });
-  worker_thread.join();
+  worker.wait();
 }
 
 int main(int argc, char const *argv[]) {

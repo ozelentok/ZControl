@@ -21,8 +21,7 @@ public:
   Server &operator=(const Server &other) = delete;
   Server &operator=(Server &&other) = delete;
   ~Server();
-  void start();
-  void stop();
+  void close();
   std::shared_ptr<Commander> get_commander(const std::string &client);
   std::vector<std::string> get_clients();
 };

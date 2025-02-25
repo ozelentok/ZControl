@@ -3,7 +3,6 @@
 
 #include "Worker.hpp"
 #include "Server.hpp"
-#include <thread>
 
 int factorial(int number) {
   return number <= 1 ? number : factorial(number - 1) * number;
@@ -13,10 +12,8 @@ TEST_CASE("Testing stat") {
   auto host = "127.0.0.1";
   auto port = 5000;
   Server server(host, port);
-  server.start();
 
   Worker worker(host, port);
-  std::thread worker_thread(&Worker::work, &worker);
   auto cmdr = server.get_commander(server.get_clients()[0]);
 
   struct stat file_info = {0};
@@ -31,6 +28,6 @@ TEST_CASE("Testing stat") {
   CHECK(worker_errno == ENOENT);
   CHECK((file_info.st_mode & S_IFDIR) == S_IFDIR);
 
-  worker.stop();
-  worker_thread.join();
+  worker.close();
+  worker.wait();
 }

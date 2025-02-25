@@ -33,7 +33,6 @@ static uint16_t parse_port(const char *port_str) {
 static void *zcfs_init(struct fuse_conn_info *conn, struct fuse_config *cfg) {
   try {
     server = std::make_unique<Server>(zcfs_options.host, parse_port(zcfs_options.port));
-    server->start();
   } catch (const std::exception &e) {
     SYSLOG_ERROR("Error initiating server: %s", e.what());
     fprintf(stderr, "Error initiating server: %s", e.what());
@@ -48,7 +47,7 @@ static void *zcfs_init(struct fuse_conn_info *conn, struct fuse_config *cfg) {
 
 static void zcfs_destroy(void *private_data) {
   if (server) {
-    server->stop();
+    server->close();
     server.reset(nullptr);
   }
 }

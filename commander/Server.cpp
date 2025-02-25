@@ -1,31 +1,29 @@
 #include "Server.hpp"
 #include "SysLog.hpp"
 
-Server::Server(const std::string &host, uint16_t port) {
+Server::Server(const std::string &host, uint16_t port) : _should_stop(false) {
   _server.bind(host, port);
   _server.listen(4);
+  _acceptor_thread = std::thread(&Server::_accept_connections, this);
 }
 
 Server::~Server() {
   try {
-    stop();
+    close();
   } catch (...) {
   }
 }
 
-void Server::start() {
-  _should_stop = false;
-  _acceptor_thread = std::thread(&Server::_accept_connections, this);
-}
-
-void Server::stop() {
+void Server::close() {
   if (_should_stop) {
     return;
   }
 
   _should_stop = true;
   _server.close();
-  _acceptor_thread.join();
+  if (_acceptor_thread.joinable()) {
+    _acceptor_thread.join();
+  }
 }
 
 void Server::_accept_connections() {
