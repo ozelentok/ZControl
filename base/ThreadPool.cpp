@@ -8,7 +8,6 @@ ThreadPool::ThreadPool(uint16_t pool_size) {
 
 ThreadPool::~ThreadPool() {
   try {
-    std::lock_guard<std::mutex> lock(_mx);
     _queue.shutdown();
     for (auto &t : _threads) {
       t.join();

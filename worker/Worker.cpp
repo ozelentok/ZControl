@@ -4,11 +4,17 @@
 #include <functional>
 
 Worker::Worker(const std::string &host, uint16_t port)
-    : _transport(host, port), _thread_pool(std::thread::hardware_concurrency()), _should_stop(false) {
-  _thread_pool.submit(std::bind(&Worker::__handle_messages, this));
+    : _transport(host, port), _thread_pool(std::thread::hardware_concurrency()), _should_stop(false) {}
+
+Worker::~Worker() {
+  try {
+    stop();
+  } catch (...) {
+  }
 }
 
 void Worker::work() {
+  _thread_pool.submit(std::bind(&Worker::__handle_messages, this));
   while (!_should_stop) {
     try {
       Message commander_msg(_transport.read());

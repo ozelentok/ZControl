@@ -22,7 +22,12 @@ public:
   ConcurrentQueue(ConcurrentQueue &&other) = delete;
   ConcurrentQueue &operator=(const ConcurrentQueue &other) = delete;
   ConcurrentQueue &operator=(ConcurrentQueue &&other) = delete;
-  ~ConcurrentQueue() = default;
+  ~ConcurrentQueue() {
+    try {
+      shutdown();
+    } catch (...) {
+    }
+  }
 
   bool empty() {
     std::lock_guard<std::mutex> lock(_mx);
@@ -53,8 +58,12 @@ public:
   }
 
   void shutdown() {
-    std::lock_guard<std::mutex> lock(_mx);
+    if (_shutdown) {
+      return;
+    }
+
     _shutdown = true;
+    std::lock_guard<std::mutex> lock(_mx);
     _cv.notify_all();
   }
 };

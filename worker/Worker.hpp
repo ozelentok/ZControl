@@ -24,7 +24,7 @@ public:
   Worker(Worker &&other) = delete;
   Worker &operator=(const Worker &other) = delete;
   Worker &operator=(Worker &&other) = delete;
-  ~Worker() = default;
+  ~Worker();
   void work();
   void stop();
 };
