@@ -10,8 +10,7 @@ Server::Server(const std::string &host, uint16_t port) : _should_stop(false) {
 Server::~Server() {
   try {
     close();
-  } catch (...) {
-  }
+  } CATCH_ALL_ERROR_HANDLER
 }
 
 void Server::close() {

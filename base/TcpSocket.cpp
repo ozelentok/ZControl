@@ -1,5 +1,6 @@
 #include "TcpSocket.hpp"
 #include "AddressInfo.hpp"
+#include "SysLog.hpp"
 #include <system_error>
 #include <unistd.h>
 #include <sys/types.h>
@@ -26,8 +27,8 @@ TcpSocket::TcpSocket(TcpSocket &&other) : _socket(-1) {
 TcpSocket::~TcpSocket() {
   try {
     close();
-  } catch (...) {
   }
+  CATCH_ALL_ERROR_HANDLER
 }
 
 void TcpSocket::connect(const std::string &host, uint16_t port) {

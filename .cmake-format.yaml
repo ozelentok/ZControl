@@ -1,0 +1,4 @@
+---
+format:
+  max_pargs_hwrap: 4
+  dangle_parens: true

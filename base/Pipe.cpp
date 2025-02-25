@@ -1,4 +1,5 @@
 #include "Pipe.hpp"
+#include "SysLog.hpp"
 #include <system_error>
 #include <errno.h>
 
@@ -20,8 +21,8 @@ Pipe::~Pipe() {
         close(_pipe_fds[i]);
         _pipe_fds[i] = -1;
       }
-    } catch (...) {
     }
+    CATCH_ALL_ERROR_HANDLER
   }
 }
 

@@ -15,8 +15,8 @@ Worker::~Worker() {
   try {
     close();
     wait();
-  } catch (...) {
   }
+  CATCH_ALL_ERROR_HANDLER
 }
 
 void Worker::close() {

@@ -1,4 +1,5 @@
 #include "FileCommandsHandler.hpp"
+#include "SysLog.hpp"
 #include "BinarySerializer.hpp"
 #include "BinaryDeserializer.hpp"
 #include <sys/types.h>
@@ -18,8 +19,8 @@ FileCommandsHandler::~FileCommandsHandler() {
     for (auto const &it : _fds) {
       ::close(it.second);
     }
-  } catch (...) {
   }
+  CATCH_ALL_ERROR_HANDLER
 }
 
 int32_t FileCommandsHandler::_get_fd(int32_t fd_id) {

@@ -1,4 +1,6 @@
 #pragma once
+#include "SysLog.hpp"
+
 #include <queue>
 #include <mutex>
 #include <condition_variable>
@@ -25,8 +27,8 @@ public:
   ~ConcurrentQueue() {
     try {
       shutdown();
-    } catch (...) {
     }
+    CATCH_ALL_ERROR_HANDLER
   }
 
   bool empty() {

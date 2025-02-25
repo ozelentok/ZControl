@@ -15,8 +15,8 @@ Commander::~Commander() {
     disconnect();
     _transport.close();
     _responses_reader.join();
-  } catch (...) {
   }
+  CATCH_ALL_ERROR_HANDLER
 }
 
 bool Commander::is_connected() const {

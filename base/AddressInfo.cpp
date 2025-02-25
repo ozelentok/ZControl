@@ -1,5 +1,6 @@
 #include "AddressInfo.hpp"
 #include "AddressInfoErrorCategory.hpp"
+#include "SysLog.hpp"
 #include <errno.h>
 
 AddressInfo::AddressInfo(const std::string &host, uint16_t port) {
@@ -27,6 +28,6 @@ AddressInfo::~AddressInfo() {
       freeaddrinfo(_info);
       _info = nullptr;
     }
-  } catch (...) {
   }
+  CATCH_ALL_ERROR_HANDLER
 }

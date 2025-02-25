@@ -1,6 +1,7 @@
 #include "DirCommandsHandler.hpp"
 #include "BinarySerializer.hpp"
 #include "BinaryDeserializer.hpp"
+#include "SysLog.hpp"
 #include <sys/stat.h>
 #include <unistd.h>
 #include <syslog.h>
@@ -22,8 +23,8 @@ DirCommandsHandler::~DirCommandsHandler() {
     for (auto const &it : _fds) {
       ::closedir(it.second);
     }
-  } catch (...) {
   }
+  CATCH_ALL_ERROR_HANDLER
 }
 
 DIR *DirCommandsHandler::_get_fd(int32_t fd_id) {

@@ -12,8 +12,8 @@ ThreadPool::~ThreadPool() {
     for (auto &t : _threads) {
       t.join();
     }
-  } catch (...) {
   }
+  CATCH_ALL_ERROR_HANDLER
 }
 
 void ThreadPool::submit(const std::function<void()> &func) {
