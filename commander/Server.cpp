@@ -8,7 +8,7 @@ Server::Server(const std::string &host, uint16_t port) {
 
 Server::~Server() {
   try {
-    _server.close();
+    stop();
   } catch (...) {
   }
 }
@@ -19,6 +19,10 @@ void Server::start() {
 }
 
 void Server::stop() {
+  if (_should_stop) {
+    return;
+  }
+
   _should_stop = true;
   _server.close();
   _acceptor_thread.join();
