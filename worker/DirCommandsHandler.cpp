@@ -1,7 +1,7 @@
 #include "DirCommandsHandler.hpp"
 #include "BinarySerializer.hpp"
 #include "BinaryDeserializer.hpp"
-#include "SysLog.hpp"
+#include "Logger.hpp"
 #include <sys/stat.h>
 #include <unistd.h>
 #include <syslog.h>
@@ -18,20 +18,18 @@ const std::map<std::string, const std::vector<dirent>> DirCommandsHandler::DirsT
 DirCommandsHandler::DirCommandsHandler() : _next_fd_id(0) {}
 
 DirCommandsHandler::~DirCommandsHandler() {
-  try {
-    std::lock_guard<std::mutex> lock(_fds_mx);
-    for (auto const &it : _fds) {
-      ::closedir(it.second);
-    }
+  DTOR_TRY
+  std::lock_guard<std::mutex> lock(_fds_mx);
+  for (auto const &it : _fds) {
+    ::closedir(it.second);
   }
-  CATCH_ALL_ERROR_HANDLER
+  DTOR_CATCH
 }
 
 DIR *DirCommandsHandler::_get_fd(int32_t fd_id) {
   std::lock_guard<std::mutex> lock(_fds_mx);
   auto iter = _fds.find(fd_id);
   if (iter == _fds.end()) {
-    syslog(LOG_WARNING, "Server used an invalid directory descriptor id: %d", fd_id);
     return nullptr;
   }
   return iter->second;

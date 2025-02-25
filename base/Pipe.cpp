@@ -1,5 +1,5 @@
 #include "Pipe.hpp"
-#include "SysLog.hpp"
+#include "Logger.hpp"
 #include <system_error>
 #include <errno.h>
 
@@ -16,13 +16,12 @@ Pipe::Pipe(Pipe &&other) : _pipe_fds{-1, -1} {
 
 Pipe::~Pipe() {
   for (int i = 0; i < sizeof(_pipe_fds) / sizeof(*_pipe_fds); i++) {
-    try {
-      if (_pipe_fds[i] != -1) {
-        close(_pipe_fds[i]);
-        _pipe_fds[i] = -1;
-      }
+    DTOR_TRY
+    if (_pipe_fds[i] != -1) {
+      close(_pipe_fds[i]);
+      _pipe_fds[i] = -1;
     }
-    CATCH_ALL_ERROR_HANDLER
+    DTOR_CATCH
   }
 }
 

@@ -1,7 +1,7 @@
 #include "Commander.hpp"
 #include "BinarySerializer.hpp"
 #include "BinaryDeserializer.hpp"
-#include "SysLog.hpp"
+#include "Logger.hpp"
 #include <stdexcept>
 #include <cstring>
 #include <sys/stat.h>
@@ -11,12 +11,11 @@ Commander::Commander(TcpSocket &&connection)
       _connected(true) {}
 
 Commander::~Commander() {
-  try {
-    disconnect();
-    _transport.close();
-    _responses_reader.join();
-  }
-  CATCH_ALL_ERROR_HANDLER
+  DTOR_TRY
+  disconnect();
+  _transport.close();
+  _responses_reader.join();
+  DTOR_CATCH
 }
 
 bool Commander::is_connected() const {
@@ -86,11 +85,9 @@ void Commander::disconnect() {
   } catch (const std::system_error &) {
     // Closed socket
   } catch (const std::exception &e) {
-    SYSLOG_ERROR("Error sending disconnect command: %s", e.what());
-    fprintf(stderr, "Error sending disconnect command: %s", e.what());
+    LOG_E(std::format("Error sending disconnect command: {}", e.what()));
   } catch (...) {
-    SYSLOG_ERROR("Unknown Error sending disconnect command\n");
-    fprintf(stderr, "Unknown Error sending disconnect command");
+    LOG_E("Unknown Error sending disconnect command\n");
   }
 
   _connected = false;

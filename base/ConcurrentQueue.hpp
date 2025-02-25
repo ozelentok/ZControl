@@ -1,5 +1,5 @@
 #pragma once
-#include "SysLog.hpp"
+#include "Logger.hpp"
 
 #include <queue>
 #include <mutex>
@@ -25,10 +25,9 @@ public:
   ConcurrentQueue &operator=(const ConcurrentQueue &other) = delete;
   ConcurrentQueue &operator=(ConcurrentQueue &&other) = delete;
   ~ConcurrentQueue() {
-    try {
-      shutdown();
-    }
-    CATCH_ALL_ERROR_HANDLER
+    DTOR_TRY
+    shutdown();
+    DTOR_CATCH
   }
 
   bool empty() {

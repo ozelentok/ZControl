@@ -1,6 +1,6 @@
 #include "Worker.hpp"
 #include "BinarySerializer.hpp"
-#include "SysLog.hpp"
+#include "Logger.hpp"
 #include <functional>
 
 Worker::Worker(const std::string &host, uint16_t port)
@@ -12,11 +12,10 @@ Worker::Worker(const std::string &host, uint16_t port)
 }
 
 Worker::~Worker() {
-  try {
-    close();
-    wait();
-  }
-  CATCH_ALL_ERROR_HANDLER
+  DTOR_TRY
+  close();
+  wait();
+  DTOR_CATCH
 }
 
 void Worker::close() {
@@ -35,8 +34,6 @@ void Worker::_read_messages() {
   while (!_should_stop) {
     try {
       Message commander_msg(_transport.read());
-      SYSLOG_DEBUG("Got message: id: %d, type: %d, data_length: %zu", commander_msg.id, commander_msg.type,
-                   commander_msg.data.size());
       _message_queue.push(std::move(commander_msg));
     } catch (const TransportClosed &) {
       _should_stop = true;
@@ -44,10 +41,10 @@ void Worker::_read_messages() {
       _should_stop = true;
     } catch (const std::exception &e) {
       _should_stop = true;
-      SYSLOG_ERROR("Error reading message from server: %s", e.what());
+      LOG_E(std::format("Error reading message from server: {}", e.what()));
     } catch (...) {
       _should_stop = true;
-      SYSLOG_ERROR("Unknown Error reading message from server");
+      LOG_E("Unknown Error reading message from server");
     }
   }
 }
@@ -61,13 +58,13 @@ void Worker::_handle_messages() {
       _should_stop = true;
     } catch (const TransportClosed &) {
       _should_stop = true;
-      SYSLOG_ERROR("Transport closed while handling message");
+      LOG_E("Transport closed while handling message");
     } catch (const std::exception &e) {
       _should_stop = true;
-      SYSLOG_ERROR("Error handling message: %s", e.what());
+      LOG_E(std::format("Error handling message: {}", e.what()));
     } catch (...) {
       _should_stop = true;
-      SYSLOG_ERROR("Unknown Error handling message");
+      LOG_E("Unknown Error handling message");
     }
   }
 }

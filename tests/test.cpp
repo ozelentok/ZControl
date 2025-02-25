@@ -30,4 +30,6 @@ TEST_CASE("Testing stat") {
 
   worker.close();
   worker.wait();
+
+  REQUIRE_THROWS_WITH(cmdr->getattr("/tmp", file_info), "Disconnected");
 }

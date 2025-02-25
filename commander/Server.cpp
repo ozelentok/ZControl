@@ -1,5 +1,5 @@
 #include "Server.hpp"
-#include "SysLog.hpp"
+#include "Logger.hpp"
 
 Server::Server(const std::string &host, uint16_t port) : _should_stop(false) {
   _server.bind(host, port);
@@ -8,9 +8,9 @@ Server::Server(const std::string &host, uint16_t port) : _should_stop(false) {
 }
 
 Server::~Server() {
-  try {
-    close();
-  } CATCH_ALL_ERROR_HANDLER
+  DTOR_TRY
+  close();
+  DTOR_CATCH
 }
 
 void Server::close() {
@@ -30,18 +30,18 @@ void Server::_accept_connections() {
     while (!_should_stop) {
       auto [connection, client_ip, client_port] = _server.accept();
       auto conn_name = TcpSocket::format_connection(client_ip, client_port);
-      SYSLOG_DEBUG("New worker connected: %s\n", conn_name.c_str());
+      LOG_D(std::format("Worker connected: {}", conn_name));
       std::lock_guard<std::mutex> lock(_commanders_mx);
       _commanders.erase(conn_name);
       _commanders.emplace(conn_name, std::make_unique<Commander>(std::move(connection)));
     }
   } catch (const std::exception &e) {
     if (!_should_stop) {
-      SYSLOG_ERROR("Error accepting worker connection: %s", e.what());
+      LOG_E(std::format("Error accepting worker connection: {}", e.what()));
     }
   } catch (...) {
     if (!_should_stop) {
-      SYSLOG_ERROR("Unknown Error accepting worker connection");
+      LOG_E("Unknown Error accepting worker connection");
     }
   }
 }

@@ -7,13 +7,12 @@ ThreadPool::ThreadPool(uint16_t pool_size) {
 }
 
 ThreadPool::~ThreadPool() {
-  try {
-    _queue.shutdown();
-    for (auto &t : _threads) {
-      t.join();
-    }
+  DTOR_TRY
+  _queue.shutdown();
+  for (auto &t : _threads) {
+    t.join();
   }
-  CATCH_ALL_ERROR_HANDLER
+  DTOR_CATCH
 }
 
 void ThreadPool::submit(const std::function<void()> &func) {

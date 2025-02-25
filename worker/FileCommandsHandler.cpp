@@ -1,5 +1,5 @@
 #include "FileCommandsHandler.hpp"
-#include "SysLog.hpp"
+#include "Logger.hpp"
 #include "BinarySerializer.hpp"
 #include "BinaryDeserializer.hpp"
 #include <sys/types.h>
@@ -14,20 +14,18 @@
 FileCommandsHandler::FileCommandsHandler() : _next_fd_id(0) {}
 
 FileCommandsHandler::~FileCommandsHandler() {
-  try {
-    std::lock_guard<std::mutex> lock(_fds_mx);
-    for (auto const &it : _fds) {
-      ::close(it.second);
-    }
+  DTOR_TRY
+  std::lock_guard<std::mutex> lock(_fds_mx);
+  for (auto const &it : _fds) {
+    ::close(it.second);
   }
-  CATCH_ALL_ERROR_HANDLER
+  DTOR_CATCH
 }
 
 int32_t FileCommandsHandler::_get_fd(int32_t fd_id) {
   std::lock_guard<std::mutex> lock(_fds_mx);
   auto iter = _fds.find(fd_id);
   if (iter == _fds.end()) {
-    syslog(LOG_WARNING, "Server used an invalid file descriptor id: %d", fd_id);
     return -1;
   }
   return iter->second;

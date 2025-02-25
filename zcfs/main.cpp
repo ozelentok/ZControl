@@ -1,7 +1,7 @@
 #include "Server.hpp"
-#include "SysLog.hpp"
+#include "Logger.hpp"
 #include <memory>
-#include <cstdio>
+#include <print>
 #include <cstring>
 #include <fcntl.h>
 #include <unistd.h>
@@ -34,12 +34,10 @@ static void *zcfs_init(struct fuse_conn_info *conn, struct fuse_config *cfg) {
   try {
     server = std::make_unique<Server>(zcfs_options.host, parse_port(zcfs_options.port));
   } catch (const std::exception &e) {
-    SYSLOG_ERROR("Error initiating server: %s", e.what());
-    fprintf(stderr, "Error initiating server: %s", e.what());
+    LOG_E(std::format("Error initiating zcfs: {}", e.what()));
     fuse_exit(fuse_get_context()->fuse);
   } catch (...) {
-    SYSLOG_ERROR("Unknown Error initiating server\n");
-    fprintf(stderr, "Unknown Error initiating server");
+    LOG_E("Unknown Error initiating zcfs");
     fuse_exit(fuse_get_context()->fuse);
   }
   return nullptr;
@@ -66,21 +64,21 @@ static std::pair<std::string, std::string> split_path(const char *path) {
 #define END_ZCFS_ERROR_HANDLER(error_value)                                                                            \
   }                                                                                                                    \
   catch (const std::exception &e) {                                                                                    \
-    SYSLOG_ERROR("Error on %s(%s): %s", __func__, path, e.what());                                                     \
+    LOG_E(std::format("Error ({}): {}", path, e.what()));                                                              \
     return -error_value;                                                                                               \
   }                                                                                                                    \
   catch (...) {                                                                                                        \
-    SYSLOG_ERROR("Unknown Error on %s(%s)", __func__, path);                                                           \
+    LOG_E(std::format("Unknown Error {})", path));                                                                     \
     return -error_value;                                                                                               \
   }
 #define END_ZCFS_ERROR_RENAME_HANDLER(error_value)                                                                     \
   }                                                                                                                    \
   catch (const std::exception &e) {                                                                                    \
-    SYSLOG_ERROR("Error on %s(%s, %s): %s", __func__, old_path, new_path, e.what());                                   \
+    LOG_E(std::format("Error ({}, {}): {}", old_path, new_path, e.what()));                                            \
     return -error_value;                                                                                               \
   }                                                                                                                    \
   catch (...) {                                                                                                        \
-    SYSLOG_ERROR("Unknown Error on %s(%s, %s)", __func__, old_path, new_path);                                         \
+    LOG_E(std::format("Unknown Error ({}, {})", old_path, new_path));                                                  \
     return -error_value;                                                                                               \
   }
 
@@ -357,7 +355,7 @@ static int zcfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off
       struct stat st = {0};
       st.st_mode = e.type() << 12;
       if (filler(buf, e.name().c_str(), &st, 0, static_cast<fuse_fill_dir_flags>(0))) {
-        SYSLOG_WARNING("readdir(%s) buffer is full", path);
+        LOG_W(std::format("readdir({}) buffer is full", path));
         break;
       }
     }

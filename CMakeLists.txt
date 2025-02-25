@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.22)
 project(zcontrol)
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake" ${CMAKE_MODULE_PATH})
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_compile_options(-D_FILE_OFFSET_BITS=64)
