@@ -5,6 +5,3 @@ add_library(worker STATIC
 )
 target_include_directories(worker PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(worker PUBLIC base common)
-if(NOT ANDROID)
-  target_link_libraries(worker PUBLIC pthread)
-endif()
