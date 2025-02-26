@@ -4,6 +4,7 @@
 #include "Server.hpp"
 #include "doctest/doctest.h"
 #include <stdexcept>
+#include <cstring>
 #include <sys/stat.h>
 
 #define SETUP_COMMANDER_WORKER                                                                                         \
@@ -12,3 +13,5 @@
   Server server(host, port);                                                                                           \
   Worker worker(host, port);                                                                                           \
   auto cmdr = server.get_commander(server.get_clients()[0])
+
+#define ERRNO_FMT(func_name, error_number) std::format(func_name "() errno {} {}", error_number, std::strerror(error_number))

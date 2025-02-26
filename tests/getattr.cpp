@@ -9,24 +9,20 @@ TEST_CASE("getattr") {
 
   SUBCASE("Valid file path") {
     std::tie(result, worker_errno) = cmdr->getattr("/tmp", file_info);
-    CHECK(result);
-    CHECK(worker_errno == 0);
-    CHECK(S_ISDIR(file_info.st_mode));
+    REQUIRE_MESSAGE(result, ERRNO_FMT("getattr", worker_errno));
+    REQUIRE(S_ISDIR(file_info.st_mode));
 
     std::tie(result, worker_errno) = cmdr->getattr("/usr/bin/bash", file_info);
-    CHECK(result);
-    CHECK(worker_errno == 0);
-    CHECK(S_ISREG(file_info.st_mode));
+    REQUIRE_MESSAGE(result, ERRNO_FMT("getattr", worker_errno));
+    REQUIRE(S_ISREG(file_info.st_mode));
   }
 
-  SUBCASE("Invalid file path") {
+  SUBCASE("Invalid file path and valid after") {
     std::tie(result, worker_errno) = cmdr->getattr("/DoesNotExist", file_info);
-    CHECK(!result);
-    CHECK(worker_errno == ENOENT);
+    CHECK_FALSE(result);
+    REQUIRE(worker_errno == ENOENT);
 
     std::tie(result, worker_errno) = cmdr->getattr("/usr", file_info);
-    CHECK(result);
-    CHECK(worker_errno == 0);
-    CHECK(S_ISDIR(file_info.st_mode));
+    REQUIRE_MESSAGE(result, ERRNO_FMT("getattr", worker_errno));
   }
 }
