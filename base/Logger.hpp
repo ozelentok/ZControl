@@ -51,7 +51,7 @@ public:
   } while (0)
 #define LOG_E(message)                                                                                                 \
   do {                                                                                                                 \
-    Logger::log(LogLevel::Debug, message);                                                                             \
+    Logger::log(LogLevel::Error, message);                                                                             \
   } while (0)
 
 #define DTOR_TRY try {
