@@ -17,4 +17,5 @@ public:
   ThreadPool &operator=(ThreadPool &&other) = delete;
   ~ThreadPool();
   void submit(const std::function<void()> &func);
+  uint16_t pool_size() const;
 };

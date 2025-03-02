@@ -7,8 +7,8 @@
 #include <sys/stat.h>
 
 Commander::Commander(TcpSocket &&connection)
-    : _transport(std::move(connection)), _next_command_id(0), _responses_reader(&Commander::_read_responses, this),
-      _connected(true) {}
+    : _connected(true), _next_command_id(0), _transport(std::move(connection)),
+      _responses_reader(&Commander::_read_responses, this) {}
 
 Commander::~Commander() {
   DTOR_TRY
@@ -87,7 +87,7 @@ void Commander::disconnect() {
   } catch (const std::exception &e) {
     LOG_E(std::format("Error sending disconnect command: {}", e.what()));
   } catch (...) {
-    LOG_E("Unknown Error sending disconnect command\n");
+    LOG_E("Unknown Error sending disconnect command");
   }
 
   _connected = false;

@@ -16,12 +16,12 @@ public:
 
 class Commander {
 private:
-  MessageTransport _transport;
+  bool _connected;
   std::atomic_uint32_t _next_command_id;
+  MessageTransport _transport;
   std::map<uint32_t, std::promise<Message>> _responses_promises;
   std::mutex _promises_mx;
   std::thread _responses_reader;
-  bool _connected;
 
   Message _send_command(const Message &commander_msg);
   void _read_responses();

@@ -4,9 +4,9 @@
 #include <functional>
 
 Worker::Worker(const std::string &host, uint16_t port)
-    : _transport(host, port), _should_stop(false), _reader_thread(std::bind(&Worker::_read_messages, this)),
-      _handlers_pool(std::thread::hardware_concurrency()) {
-  for (auto i = 0; i < std::thread::hardware_concurrency() - 1; i++) {
+    : _should_stop(false), _transport(host, port), _handlers_pool(std::thread::hardware_concurrency()),
+      _messages_reader(std::bind(&Worker::_read_messages, this)) {
+  for (auto i = 0; i < std::max(1, _handlers_pool.pool_size() - 1); i++) {
     _handlers_pool.submit(std::bind(&Worker::_handle_messages, this));
   }
 }
@@ -25,8 +25,8 @@ void Worker::close() {
 }
 
 void Worker::wait() {
-  if (_reader_thread.joinable()) {
-    _reader_thread.join();
+  if (_messages_reader.joinable()) {
+    _messages_reader.join();
   }
 }
 

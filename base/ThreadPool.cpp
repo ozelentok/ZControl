@@ -27,3 +27,7 @@ void ThreadPool::_poll_queue() {
   } catch (const QueueShutdown &) {
   }
 }
+
+uint16_t ThreadPool::pool_size() const {
+  return _threads.size();
+}

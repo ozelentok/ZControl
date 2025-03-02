@@ -8,13 +8,13 @@
 
 class Worker {
 private:
-  MessageTransport _transport;
-  std::thread _reader_thread;
-  ThreadPool _handlers_pool;
-  ConcurrentQueue<Message> _message_queue;
+  bool _should_stop;
   FileCommandsHandler _file_handler;
   DirCommandsHandler _dir_handler;
-  bool _should_stop;
+  MessageTransport _transport;
+  ConcurrentQueue<Message> _message_queue;
+  ThreadPool _handlers_pool;
+  std::thread _messages_reader;
 
   void _read_messages();
   void _handle_messages();
