@@ -10,8 +10,8 @@
 #include <fuse.h>
 
 static std::unique_ptr<Server> server;
-static const int64_t VirtualRootDirFd = -1;
-static const uint32_t MaxDirsReadPerCall = 2048;
+static constexpr int64_t VirtualRootDirFd = -1;
+static constexpr uint32_t MaxDirsReadPerCall = 2048;
 
 static struct zcfs_options_t {
   const char *host;
@@ -468,24 +468,27 @@ static const struct fuse_opt zcfs_fuse_opts[] = {ZCFS_FUSE_OPT("host=%s", host),
                                                  ZCFS_FUSE_OPT("-h", show_help), ZCFS_FUSE_OPT("--help", show_help),
                                                  FUSE_OPT_END};
 
+static constexpr auto DefaultHost = "0.0.0.0";
+static constexpr auto DefaultPort = "4444";
+
 static void show_help(const char *progname) {
-  printf("Usage: %s <mountpoint> [options]\n"
-         "\n"
-         "ZCFS Options\n"
-         "    -h   --help            print help\n"
-         "    -o host=HOST           host to listen on (default: 0.0.0.0)\n"
-         "    -o port=PORT           port to listen on (default: 4444)\n"
-         "\n"
-         "FUSE Options:\n",
-         progname);
+  std::print("Usage: {} <mountpoint> [options]\n"
+             "\n"
+             "ZCFS Options\n"
+             "    -h   --help            print help\n"
+             "    -o host=HOST           host to listen on (default: {})\n"
+             "    -o port=PORT           port to listen on (default: {})\n"
+             "\n"
+             "FUSE Options:\n",
+             progname, DefaultHost, DefaultPort);
 }
 
 int main(int argc, char *argv[]) {
   struct fuse_args args = FUSE_ARGS_INIT(argc, argv);
   auto args_guard = std::unique_ptr<fuse_args, decltype(&fuse_opt_free_args)>{&args, &fuse_opt_free_args};
 
-  zcfs_options.host = strdup("0.0.0.0");
-  zcfs_options.port = strdup("4444");
+  zcfs_options.host = strdup(DefaultHost);
+  zcfs_options.port = strdup(DefaultPort);
   if (fuse_opt_parse(&args, &zcfs_options, zcfs_fuse_opts, NULL) == -1) {
     return 1;
   }
