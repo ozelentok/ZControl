@@ -36,6 +36,9 @@ public:
   }
 
   void push(const T &value) {
+    if (_shutdown) {
+      throw QueueShutdown();
+    }
     std::lock_guard<std::mutex> lock(_mx);
     _queue.push(value);
     _cv.notify_one();
