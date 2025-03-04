@@ -2,7 +2,7 @@
 
 #include "Worker.hpp"
 #include "Server.hpp"
-#include "doctest/doctest.h"
+#include <catch2/catch_test_macros.hpp>
 #include <chrono>
 #include <thread>
 #include <cstring>
@@ -14,6 +14,21 @@ static constexpr auto MaxRetries = 5;
 static constexpr std::string Host = "127.0.0.1";
 static constexpr auto Port = 5000;
 static constexpr auto WaitTime = 20ms;
+
+#define CHECK_MESSAGE(cond, msg)                                                                                       \
+  do {                                                                                                                 \
+    if (!(cond)) {                                                                                                     \
+      INFO(msg);                                                                                                       \
+    }                                                                                                                  \
+    CHECK(cond);                                                                                                       \
+  } while (0)
+#define REQUIRE_MESSAGE(cond, msg)                                                                                     \
+  do {                                                                                                                 \
+    if (!(cond)) {                                                                                                     \
+      INFO(msg);                                                                                                       \
+    }                                                                                                                  \
+    REQUIRE(cond);                                                                                                     \
+  } while (0)
 
 #define SETUP_COMMANDER_WORKER                                                                                         \
   Server server(Host, Port);                                                                                           \

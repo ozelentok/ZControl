@@ -7,7 +7,7 @@ TEST_CASE("Connection") {
 
   struct stat file_info = {0};
 
-  SUBCASE("Connection") {
+  SECTION("Connection") {
     REQUIRE_NOTHROW(cmdr->getattr("/", file_info));
     REQUIRE_NOTHROW(cmdr->disconnect());
     REQUIRE_THROWS_AS(cmdr->getattr("/", file_info), std::runtime_error);
@@ -17,7 +17,7 @@ TEST_CASE("Connection") {
   worker.close();
   worker.wait();
 
-  SUBCASE("Disconnection") {
+  SECTION("Disconnection") {
     REQUIRE_THROWS_AS(cmdr->getattr("/tmp", file_info), std::runtime_error);
     REQUIRE_THROWS_AS(cmdr->getattr("/DoesNotExist", file_info), std::runtime_error);
   }

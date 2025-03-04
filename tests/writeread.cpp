@@ -19,7 +19,7 @@ TEST_CASE("write() and read()") {
 
   std::string text = "Contents of files";
 
-  SUBCASE("Write and read") {
+  SECTION("Write and read") {
     auto output_path = tmp_dir / "zcontrol-readwrite-test";
 
     std::tie(fd, worker_errno) = cmdr->open(output_path, O_CREAT | O_WRONLY);
@@ -46,7 +46,7 @@ TEST_CASE("write() and read()") {
     CHECK_MESSAGE(close_result, ERRNO_FMT("close", worker_errno));
   }
 
-  SUBCASE("Invalid file path") {
+  SECTION("Invalid file path") {
     auto output_path = tmp_dir / "non-existing-dir" / "non-existing-file";
     std::tie(fd, worker_errno) = cmdr->open(output_path, O_CREAT | O_WRONLY);
     REQUIRE(fd == -1);
