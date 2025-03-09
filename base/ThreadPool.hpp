@@ -5,8 +5,8 @@
 
 class ThreadPool {
 private:
-  std::vector<std::thread> _threads;
   ConcurrentQueue<std::function<void()>> _queue;
+  std::vector<std::jthread> _threads;
   void _poll_queue();
 
 public:

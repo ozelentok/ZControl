@@ -16,6 +16,8 @@ TEST_CASE("Connection") {
 
   worker.close();
   worker.wait();
+  worker.wait();
+  worker.close();
 
   SECTION("Disconnection") {
     REQUIRE_THROWS_AS(cmdr->getattr("/tmp", file_info), std::runtime_error);

@@ -13,10 +13,10 @@ public:
 
 template <typename T> class ConcurrentQueue {
 private:
-  std::queue<T> _queue;
+  std::atomic_bool _shutdown;
   std::mutex _mx;
   std::condition_variable _cv;
-  bool _shutdown;
+  std::queue<T> _queue;
 
 public:
   ConcurrentQueue() : _shutdown(false) {};

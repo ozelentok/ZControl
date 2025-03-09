@@ -15,11 +15,11 @@ Pipe::Pipe(Pipe &&other) : _pipe_fds{-1, -1} {
 }
 
 Pipe::~Pipe() {
-  for (int i = 0; i < sizeof(_pipe_fds) / sizeof(*_pipe_fds); i++) {
+  for (auto &fd : _pipe_fds) {
     DTOR_TRY
-    if (_pipe_fds[i] != -1) {
-      close(_pipe_fds[i]);
-      _pipe_fds[i] = -1;
+    if (fd != -1) {
+      close(fd);
+      fd = -1;
     }
     DTOR_CATCH
   }

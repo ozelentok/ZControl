@@ -1,6 +1,7 @@
 #include "MessageTransport.hpp"
 #include "BinarySerializer.hpp"
 #include "BinaryDeserializer.hpp"
+#include "Logger.hpp"
 
 Message::Message(uint32_t id, uint8_t type, std::vector<uint8_t> &&data)
     : id(id), type(type), data(std::forward<std::vector<uint8_t>>(data)) {}
@@ -10,6 +11,12 @@ MessageTransport::MessageTransport(const std::string &host, uint16_t port) {
 }
 
 MessageTransport::MessageTransport(TcpSocket &&socket) : _socket(std::forward<TcpSocket>(socket)) {}
+
+MessageTransport::~MessageTransport() {
+  DTOR_TRY
+  close();
+  DTOR_CATCH
+}
 
 void MessageTransport::_read_exactly(uint8_t *buffer, uint32_t count) {
   uint32_t bytes_read = 0;

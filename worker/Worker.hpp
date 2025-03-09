@@ -8,13 +8,13 @@
 
 class Worker {
 private:
-  bool _should_stop;
+  std::atomic_bool _should_stop;
   FileCommandsHandler _file_handler;
   DirCommandsHandler _dir_handler;
   MessageTransport _transport;
   ConcurrentQueue<Message> _message_queue;
   ThreadPool _handlers_pool;
-  std::thread _messages_reader;
+  std::jthread _messages_reader;
 
   void _read_messages();
   void _handle_messages();

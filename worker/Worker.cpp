@@ -2,9 +2,10 @@
 #include "BinarySerializer.hpp"
 #include "Logger.hpp"
 #include <functional>
+#include <algorithm>
 
 Worker::Worker(const std::string &host, uint16_t port)
-    : _should_stop(false), _transport(host, port), _handlers_pool(std::thread::hardware_concurrency()),
+    : _should_stop(false), _transport(host, port), _handlers_pool(std::max(1u, std::jthread::hardware_concurrency())),
       _messages_reader(std::bind(&Worker::_read_messages, this)) {
   for (auto i = 0; i < std::max(1, _handlers_pool.pool_size() - 1); i++) {
     _handlers_pool.submit(std::bind(&Worker::_handle_messages, this));
@@ -14,20 +15,18 @@ Worker::Worker(const std::string &host, uint16_t port)
 Worker::~Worker() {
   DTOR_TRY
   close();
-  wait();
   DTOR_CATCH
 }
 
 void Worker::close() {
   _should_stop = true;
+  _should_stop.notify_all();
   _transport.close();
   _message_queue.shutdown();
 }
 
 void Worker::wait() {
-  if (_messages_reader.joinable()) {
-    _messages_reader.join();
-  }
+  _should_stop.wait(false);
 }
 
 void Worker::_read_messages() {
@@ -37,13 +36,17 @@ void Worker::_read_messages() {
       _message_queue.push(std::move(commander_msg));
     } catch (const TransportClosed &) {
       _should_stop = true;
+      _should_stop.notify_all();
     } catch (const CancellationException &) {
       _should_stop = true;
+      _should_stop.notify_all();
     } catch (const std::exception &e) {
       _should_stop = true;
+      _should_stop.notify_all();
       LOG_E(std::format("Error reading message from server: {}", e.what()));
     } catch (...) {
       _should_stop = true;
+      _should_stop.notify_all();
       LOG_E("Unknown Error reading message from server");
     }
   }
@@ -56,14 +59,18 @@ void Worker::_handle_messages() {
       _transport.write(_do_command(msg));
     } catch (const QueueShutdown &) {
       _should_stop = true;
+      _should_stop.notify_all();
     } catch (const TransportClosed &) {
       _should_stop = true;
+      _should_stop.notify_all();
       LOG_E("Transport closed while handling message");
     } catch (const std::exception &e) {
       _should_stop = true;
+      _should_stop.notify_all();
       LOG_E(std::format("Error handling message: {}", e.what()));
     } catch (...) {
       _should_stop = true;
+      _should_stop.notify_all();
       LOG_E("Unknown Error handling message");
     }
   }
@@ -71,6 +78,7 @@ void Worker::_handle_messages() {
 
 Message Worker::_disconnect(const Message &message) {
   _should_stop = true;
+  _should_stop.notify_all();
   return Message(message.id, WorkerMessageType::CommandResult, std::vector<uint8_t>(0));
 }
 

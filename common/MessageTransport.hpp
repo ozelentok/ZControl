@@ -74,7 +74,7 @@ public:
   MessageTransport(MessageTransport &&other) = delete;
   MessageTransport &operator=(const MessageTransport &other) = delete;
   MessageTransport &operator=(MessageTransport &&other) = delete;
-  ~MessageTransport() = default;
+  ~MessageTransport();
   Message read();
   void write(const Message &message);
   void close();

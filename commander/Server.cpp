@@ -4,7 +4,7 @@
 Server::Server(const std::string &host, uint16_t port) : _should_stop(false) {
   _server.bind(host, port);
   _server.listen(4);
-  _acceptor_thread = std::thread(&Server::_accept_connections, this);
+  _acceptor_thread = std::jthread(&Server::_accept_connections, this);
 }
 
 Server::~Server() {
@@ -20,9 +20,6 @@ void Server::close() {
 
   _should_stop = true;
   _server.close();
-  if (_acceptor_thread.joinable()) {
-    _acceptor_thread.join();
-  }
 }
 
 void Server::_accept_connections() {

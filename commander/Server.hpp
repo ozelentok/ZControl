@@ -7,11 +7,11 @@
 
 class Server {
 private:
-  TcpSocket _server;
-  std::map<std::string, std::shared_ptr<Commander>> _commanders;
-  std::mutex _commanders_mx;
-  std::thread _acceptor_thread;
   std::atomic_bool _should_stop;
+  std::mutex _commanders_mx;
+  std::map<std::string, std::shared_ptr<Commander>> _commanders;
+  TcpSocket _server;
+  std::jthread _acceptor_thread;
   void _accept_connections();
 
 public:
